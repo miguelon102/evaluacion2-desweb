@@ -1,0 +1,56 @@
+<div class="form-container">
+  <h2>Gestión de Carriles Bici</h2>
+
+  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">
+    {{ serverMessage }}
+  </p>
+
+  <form [formGroup]="carrilesForm">
+    
+    <div>
+      <label for="id">ID (Sólo para SelectOne, Update y Delete): </label>
+      <input type="number" id="id" formControlName="id">
+    </div>
+
+    <div>
+      <label for="nombre_calle">Nombre de la Calle: </label>
+      <input type="text" id="nombre_calle" formControlName="nombre_calle">
+    </div>
+
+    <div>
+      <label for="longitud_metros">Longitud (Metros): </label>
+      <input type="number" id="longitud_metros" formControlName="longitud_metros">
+    </div>
+
+    <div>
+      <label for="tipo_pavimento">Tipo de Pavimento: </label>
+      <input type="text" id="tipo_pavimento" formControlName="tipo_pavimento">
+    </div>
+
+    <div>
+      <label for="sentido_unico">¿Es de Sentido Único?: </label>
+      <input type="checkbox" id="sentido_unico" formControlName="sentido_unico">
+    </div>
+
+    <div>
+      <label for="anyo_construccion">Año de Construcción: </label>
+      <input type="number" id="anyo_construccion" formControlName="anyo_construccion">
+    </div>
+
+    <div>
+      <label for="geom">Geometría (WKT LineString): </label>
+      <textarea id="geom" formControlName="geom" rows="2" cols="50"></textarea>
+    </div>
+
+  </form>
+
+  <div class="botones-container" style="margin-top: 20px;">
+    <button (click)="insert()">Insert</button>
+    <button (click)="selectOne()">Select One</button>
+    <button (click)="selectAll()">Select All</button>
+    <button (click)="update()">Update</button>
+    <button (click)="delete()">Delete</button>
+    <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
+  </div>
+
+</div>

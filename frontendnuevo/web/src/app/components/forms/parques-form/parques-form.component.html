@@ -1,0 +1,56 @@
+<div class="form-container">
+  <h2>Gestión de Parques</h2>
+
+  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">
+    {{ serverMessage }}
+  </p>
+
+  <form [formGroup]="parquesForm">
+    
+    <div>
+      <label for="id">ID (Sólo para SelectOne, Update y Delete): </label>
+      <input type="number" id="id" formControlName="id">
+    </div>
+
+    <div>
+      <label for="nombre">Nombre: </label>
+      <input type="text" id="nombre" formControlName="nombre">
+    </div>
+
+    <div>
+      <label for="area_hectareas">Área (Hectáreas): </label>
+      <input type="number" id="area_hectareas" formControlName="area_hectareas">
+    </div>
+
+    <div>
+      <label for="tiene_zona_infantil">¿Tiene Zona Infantil?: </label>
+      <input type="checkbox" id="tiene_zona_infantil" formControlName="tiene_zona_infantil">
+    </div>
+
+    <div>
+      <label for="horario_cierre">Horario Cierre: </label>
+      <input type="time" id="horario_cierre" formControlName="horario_cierre" step="1">
+    </div>
+
+    <div>
+      <label for="tipo_mantenimiento">Mantenimiento: </label>
+      <input type="text" id="tipo_mantenimiento" formControlName="tipo_mantenimiento">
+    </div>
+
+    <div>
+      <label for="geom">Geometría (WKT Polygon): </label>
+      <textarea id="geom" formControlName="geom" rows="3" cols="50"></textarea>
+    </div>
+
+  </form>
+
+  <div class="botones-container" style="margin-top: 20px;">
+    <button (click)="insert()">Insert</button>
+    <button (click)="selectOne()">Select One</button>
+    <button (click)="selectAll()">Select All</button>
+    <button (click)="update()">Update</button>
+    <button (click)="delete()">Delete</button>
+    <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
+  </div>
+
+</div>

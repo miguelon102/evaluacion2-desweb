@@ -1,0 +1,56 @@
+<div class="form-container">
+  <h2>Gestión de Contenedores</h2>
+
+  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">
+    {{ serverMessage }}
+  </p>
+
+  <form [formGroup]="contenedoresForm">
+    
+    <div>
+      <label for="id">ID: </label>
+      <input type="number" id="id" formControlName="id">
+    </div>
+
+    <div>
+      <label for="tipo_residuo">Tipo Residuo: </label>
+      <input type="text" id="tipo_residuo" formControlName="tipo_residuo">
+    </div>
+
+    <div>
+      <label for="capacidad_litros">Capacidad (Litros): </label>
+      <input type="number" id="capacidad_litros" formControlName="capacidad_litros">
+    </div>
+
+    <div>
+      <label for="fecha_ultima_recogida">Última Recogida (YYYY-MM-DD): </label>
+      <input type="date" id="fecha_ultima_recogida" formControlName="fecha_ultima_recogida">
+    </div>
+
+    <div>
+      <label for="estado_conservacion">Estado de Conservación: </label>
+      <input type="text" id="estado_conservacion" formControlName="estado_conservacion">
+    </div>
+
+    <div>
+      <label for="barrio">Barrio: </label>
+      <input type="text" id="barrio" formControlName="barrio">
+    </div>
+
+    <div>
+      <label for="geom">Geometría (WKT Point): </label>
+      <textarea id="geom" formControlName="geom" rows="2" cols="50"></textarea>
+    </div>
+
+  </form>
+
+  <div class="botones-container" style="margin-top: 20px;">
+    <button (click)="insert()">Insert</button>
+    <button (click)="selectOne()">Select One</button>
+    <button (click)="selectAll()">Select All</button>
+    <button (click)="update()">Update</button>
+    <button (click)="delete()">Delete</button>
+    <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
+  </div>
+
+</div>
