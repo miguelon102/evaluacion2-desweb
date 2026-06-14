@@ -73,35 +73,74 @@ export class MapService {
   }
 
   createMyLayers(): LayerGroup {
-    var buildings= new TileLayer({
-        properties: {
-          title: 'Buildings WMS'
-        },
-        source: new TileWMS({
-          url: this.settingsService.GEOSERVER_URL + 'wms?',
-          params: {
-            'LAYERS': 'buildings_buildings', 'VERSION': '1.3.0', 'TILED': true, 'TRANSPARENT': true, 'FORMAT': 'image/png'
-          }
-        })
+      // BUILDINGS
+      var buildings= new TileLayer({
+          properties: { title: 'Buildings WMS' },
+          source: new TileWMS({
+            url: this.settingsService.GEOSERVER_URL + 'wms?',
+            params: { 'LAYERS': 'buildings_buildings', 'VERSION': '1.3.0', 'TILED': true, 'TRANSPARENT': true, 'FORMAT': 'image/png' }
+          })
+        });
+      var buildingsVectorSource = new VectorSource({wrapX: false});
+      var buildingsVectorLayer = new VectorLayer({
+        source: buildingsVectorSource,
+        properties: { title: 'Buildings vector' }
       });
-    var buildingsVectorSource = new VectorSource({wrapX: false}); 
-    var buildingsVectorLayer = new VectorLayer({
-      source: buildingsVectorSource,
-      properties: {
-        title: 'Buildings vector' // <--- Define el título aquí
-        // Puedes añadir otras propiedades personalizadas aquí si es necesario
-        // Por ejemplo: isBaseLayer: false, description: 'Capa para edificios'
-      }   
-    });//The layer were we will draw
 
-    var myLayersGroup = new LayerGroup({
-        properties: {
-          title: 'My layers'
-        },
-        layers: [buildings, buildingsVectorLayer]
+      // PARQUES
+      var parques = new TileLayer({
+          properties: { title: 'Parques WMS' },
+          source: new TileWMS({
+            url: this.settingsService.GEOSERVER_URL + 'wms?',
+            params: { 'LAYERS': 'smartcity:smartcity_app_parques', 'VERSION': '1.3.0', 'TILED': true, 'TRANSPARENT': true, 'FORMAT': 'image/png' }
+          })
+        });
+      var parquesVectorSource = new VectorSource({wrapX: false});
+      var parquesVectorLayer = new VectorLayer({
+        source: parquesVectorSource,
+        properties: { title: 'Parques vector' }
       });
-    return myLayersGroup;
-  }
+
+      // CONTENEDORES
+      var contenedores = new TileLayer({
+          properties: { title: 'Contenedores WMS' },
+          source: new TileWMS({
+            url: this.settingsService.GEOSERVER_URL + 'wms?',
+            params: { 'LAYERS': 'smartcity:smartcity_app_contenedores', 'VERSION': '1.3.0', 'TILED': true, 'TRANSPARENT': true, 'FORMAT': 'image/png' }
+          })
+        });
+      var contenedoresVectorSource = new VectorSource({wrapX: false});
+      var contenedoresVectorLayer = new VectorLayer({
+        source: contenedoresVectorSource,
+        properties: { title: 'Contenedores vector' }
+      });
+
+      // CARRILES BICI
+      var carriles = new TileLayer({
+          properties: { title: 'Carriles WMS' },
+          source: new TileWMS({
+            url: this.settingsService.GEOSERVER_URL + 'wms?',
+            params: { 'LAYERS': 'smartcity:smartcity_app_carrilesbici', 'VERSION': '1.3.0', 'TILED': true, 'TRANSPARENT': true, 'FORMAT': 'image/png' }
+          })
+        });
+      var carrilesVectorSource = new VectorSource({wrapX: false});
+      var carrilesVectorLayer = new VectorLayer({
+        source: carrilesVectorSource,
+        properties: { title: 'Carriles vector' }
+      });
+
+      // AGRUPAR TODAS LAS CAPAS 
+      var myLayersGroup = new LayerGroup({
+          properties: { title: 'My layers' },
+          layers: [
+            buildings, buildingsVectorLayer,
+            parques, parquesVectorLayer,
+            contenedores, contenedoresVectorLayer,
+            carriles, carrilesVectorLayer
+          ]
+        });
+      return myLayersGroup;
+    }
 
 
   createMap(): Map { 

@@ -7,15 +7,19 @@ import { MapService } from '../../services/map.service';
 import { DrawBuildingComponent } from '../draw-building/draw-building.component';
 import { DrawFlowerComponent } from '../draw-flower/draw-flower.component';
 
+// COMPONENTES SMARTCITY
+import { DrawParqueComponent } from '../draw-parque/draw-parque.component';
+import { DrawContenedorComponent } from '../draw-contenedor/draw-contenedor.component';
+import { DrawCarrilComponent } from '../draw-carril/draw-carril.component';
+
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [DrawBuildingComponent, DrawFlowerComponent],
+  imports: [DrawBuildingComponent, DrawFlowerComponent, DrawParqueComponent, DrawContenedorComponent, DrawCarrilComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
-export class MapComponent implements OnInit, AfterViewInit, OnDestroy{
-  //Referemce to the map div
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {  //Referemce to the map div
   //It is available in this.mapContainer.nativeElement
   //! is a non-null assertion operator. Means that the variable is not null or undefined
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;

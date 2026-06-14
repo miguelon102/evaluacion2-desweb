@@ -5,15 +5,19 @@ import { ServerAnswerModel } from '../../../models/server-answer.model';
 import { Parque } from '../../../models/parque.model';
 import { CommonModule } from '@angular/common';
 
+//NUEVOS IMPORTS
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MapService } from '../../../services/map.service';
+
 @Component({
   selector: 'app-parques-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], // <-- Añade RouterLink aquí
   templateUrl: './parques-form.component.html',
   styleUrl: './parques-form.component.scss'
 })
 export class ParquesFormComponent implements OnInit {
-  
+    
   // Definimo formulario reactivo
   parquesForm!: FormGroup;
   
@@ -23,8 +27,13 @@ export class ParquesFormComponent implements OnInit {
   // Array vacio para mostrar info en select all
   listaParques: any[] = [];
 
-  // Inyectamos servicio para hablar con django
-  constructor(private apiService: ApiService) {}
+  // Inyectamos todos los servicios que necesitamos a la vez
+  constructor(
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    public mapService: MapService,
+    public router: Router
+  ) {}
 
   ngOnInit(): void {
     // Inicializamos los controles del formulario
@@ -37,6 +46,13 @@ export class ParquesFormComponent implements OnInit {
       horario_cierre: new FormControl(''),
       tipo_mantenimiento: new FormControl(''),
       geom: new FormControl('')
+    });
+   // --- NUEVO: LEER LA URL ---
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      const geom = params.get('geom');
+      if (geom) {
+        this.parquesForm.get('geom')?.setValue(geom);
+      }
     });
   }
 
@@ -52,6 +68,7 @@ export class ParquesFormComponent implements OnInit {
         // Mostramos mensaje y ID generado
         this.serverMessage = `Insert OK. Nuevo ID: ${response.id}`;
         console.log('Respuesta (POST) OK:', response);
+        this.mapService.getLayerByTitle('Parques WMS')?.getSource().updateParams({"time": Date.now()});
       },
   error: (err: any) => {
         this.serverMessage = `Error al insertar: ${err?.message || err}`;

@@ -3,10 +3,14 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 
+// --- NUEVOS IMPORTS ---
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MapService } from '../../../services/map.service';
+
 @Component({
   selector: 'app-contenedores-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], // <-- RouterLink perfectamente inyectado
   templateUrl: './contenedores-form.component.html',
   styleUrl: './contenedores-form.component.scss'
 })
@@ -14,14 +18,17 @@ export class ContenedoresFormComponent implements OnInit {
   
   contenedoresForm!: FormGroup;
   serverMessage: string = '';
-
-  // Variable para guardar los datos de la tabla
   listaContenedores: any[] = [];
 
-  constructor(private apiService: ApiService) {}
+  // --- CONSTRUCTOR UNIFICADO ---
+  constructor(
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    public mapService: MapService,
+    public router: Router
+  ) {}
 
   ngOnInit(): void {
-    // controles coinciden con modelo contenedor.model.ts
     this.contenedoresForm = new FormGroup({
       id: new FormControl(''),
       tipo_residuo: new FormControl(''),
@@ -30,6 +37,14 @@ export class ContenedoresFormComponent implements OnInit {
       estado_conservacion: new FormControl(''),
       barrio: new FormControl(''),
       geom: new FormControl('')
+    });
+
+    // --- MAGIA: LEER LA URL ---
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      const geom = params.get('geom');
+      if (geom) {
+        this.contenedoresForm.get('geom')?.setValue(geom);
+      }
     });
   }
 
@@ -40,7 +55,9 @@ export class ContenedoresFormComponent implements OnInit {
     this.apiService.post('/smartcity/contenedores/', data).subscribe({
       next: (response: any) => {
         this.serverMessage = `Insert OK. Nuevo ID: ${response.id}`;
-        console.log('Respuesta (POST) OK:', response);
+        
+        // --- REFRESCA LA CAPA WMS TRAS INSERTAR ---
+        this.mapService.getLayerByTitle('Contenedores WMS')?.getSource().updateParams({"time": Date.now()});
       },
       error: (err: any) => {
         this.serverMessage = `Error al insertar: ${err?.message || err}`;
@@ -51,19 +68,11 @@ export class ContenedoresFormComponent implements OnInit {
 
   selectOne(): void {
     const id = this.contenedoresForm.get('id')?.value;
-    if (!id) {
-      this.serverMessage = 'Error: Escribe un ID';
-      return;
-    }
-
+    if (!id) return;
     this.apiService.get(`/smartcity/contenedores/${id}/`).subscribe({
       next: (response: any) => {
         this.contenedoresForm.patchValue(response);
         this.serverMessage = `Registro ${id} cargado.`;
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error: No encontrado`;
-        console.error(`Error (GET) al buscar id=${id}:`, err);
       }
     });
   }
@@ -71,33 +80,21 @@ export class ContenedoresFormComponent implements OnInit {
   update(): void {
     const id = this.contenedoresForm.get('id')?.value;
     const data = this.contenedoresForm.value;
-
-    // Blindaje del ID para que Django no lo rechace
     delete data.id;
 
     this.apiService.put(`/smartcity/contenedores/${id}/`, data).subscribe({
       next: (response: any) => {
         this.serverMessage = `Update OK. ID ${response.id} actualizado.`;
-        console.log('Respuesta (PUT) OK:', response);
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error al actualizar: ${JSON.stringify(err.error)}`;
-        console.error('Error (PUT) al actualizar contenedor:', err);
       }
     });
   }
 
   delete(): void {
     const id = this.contenedoresForm.get('id')?.value;
-
     this.apiService.delete(`/smartcity/contenedores/${id}/`).subscribe({
       next: () => {
         this.serverMessage = `Delete OK. ID ${id} eliminado.`;
-        this.clean(); // Vaciamos
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error al borrar: ${err?.message || err}`;
-        console.error(`Error (DELETE) id=${id}:`, err);
+        this.clean();
       }
     });
   }
@@ -105,21 +102,12 @@ export class ContenedoresFormComponent implements OnInit {
   selectAll(): void {
     this.apiService.get('/smartcity/contenedores/').subscribe({
       next: (response: any) => {
-        // DETECTOR INTELIGENTE
         this.listaContenedores = response.results || response.data || (Array.isArray(response) ? response : []);
-        
-        const cantidad = this.listaContenedores.length;
-        this.serverMessage = `Select All OK. Hay ${cantidad} contenedores.`;
-        console.log('Respuesta (GET) selectAll OK, cantidad=', cantidad);
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error al pedir todos: ${err?.message || err}`;
-        console.error('Error (GET) selectAll:', err);
+        this.serverMessage = `Select All OK. Hay ${this.listaContenedores.length} contenedores.`;
       }
     });
   }
 
-  // FUNCIÓN EXTRA PARA LA TABLA
   cargarEnFormulario(contenedorClicado: any): void {
     this.contenedoresForm.patchValue(contenedorClicado);
     this.serverMessage = `Contenedor ID ${contenedorClicado.id} cargado, listo para actualizar o borrar.`;

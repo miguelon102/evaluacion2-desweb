@@ -3,10 +3,14 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 
+// --- NUEVOS IMPORTS ---
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MapService } from '../../../services/map.service';
+
 @Component({
   selector: 'app-carriles-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], // <-- RouterLink añadido
   templateUrl: './carriles-form.component.html',
   styleUrl: './carriles-form.component.scss'
 })
@@ -14,9 +18,15 @@ export class CarrilesFormComponent implements OnInit {
   
   carrilesForm!: FormGroup;
   serverMessage: string = '';
-  listaCarriles: any[] = []; // Variable para la tabla
+  listaCarriles: any[] = []; 
 
-  constructor(private apiService: ApiService) {}
+  // --- CONSTRUCTOR UNIFICADO ---
+  constructor(
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    public mapService: MapService,
+    public router: Router
+  ) {}
 
   ngOnInit(): void {
     this.carrilesForm = new FormGroup({
@@ -28,6 +38,14 @@ export class CarrilesFormComponent implements OnInit {
       anyo_construccion: new FormControl(''),
       geom: new FormControl('')
     });
+
+    // --- MAGIA: LEER LA URL ---
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      const geom = params.get('geom');
+      if (geom) {
+        this.carrilesForm.get('geom')?.setValue(geom);
+      }
+    });
   }
 
   insert(): void {
@@ -36,6 +54,9 @@ export class CarrilesFormComponent implements OnInit {
     this.apiService.post('/smartcity/carriles/', data).subscribe({
       next: (response: any) => {
         this.serverMessage = `Insert OK. Nuevo ID: ${response.id}`;
+        
+        // --- REFRESCA LA CAPA WMS TRAS INSERTAR ---
+        this.mapService.getLayerByTitle('Carriles WMS')?.getSource().updateParams({"time": Date.now()});
       },
       error: (err: any) => {
         this.serverMessage = `Error al insertar: ${err?.message || err}`;
@@ -57,14 +78,11 @@ export class CarrilesFormComponent implements OnInit {
   update(): void {
     const id = this.carrilesForm.get('id')?.value;
     const data = this.carrilesForm.value;
-    delete data.id; // BLINDAJE
+    delete data.id; 
 
     this.apiService.put(`/smartcity/carriles/${id}/`, data).subscribe({
       next: (response: any) => {
         this.serverMessage = `Update OK. ID ${response.id} actualizado.`;
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error al actualizar: ${JSON.stringify(err.error)}`;
       }
     });
   }
@@ -99,3 +117,6 @@ export class CarrilesFormComponent implements OnInit {
     this.serverMessage = 'Formulario vaciado.';
   }
 }
+
+
+
