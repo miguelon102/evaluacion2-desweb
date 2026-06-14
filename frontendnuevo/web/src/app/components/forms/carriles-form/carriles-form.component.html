@@ -53,4 +53,37 @@
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
   </div>
 
+  <hr style="margin-top: 40px;">
+  <h3>Listado de Carriles Bici</h3>
+
+  @if (listaCarriles.length > 0) {
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+      <thead style="background-color: #f4f4f4;">
+        <tr>
+          <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Calle</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Longitud (m)</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Pavimento</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Sentido Único</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (carril of listaCarriles; track carril.id) {
+          <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.id }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.nombre_calle }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.longitud_metros }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.tipo_pavimento }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.sentido_unico ? 'Sí' : 'No' }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+              <button type="button" (click)="cargarEnFormulario(carril)">Editar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p>No hay carriles bici cargados.</p>
+  }
 </div>

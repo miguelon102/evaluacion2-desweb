@@ -15,6 +15,9 @@ export class ContenedoresFormComponent implements OnInit {
   contenedoresForm!: FormGroup;
   serverMessage: string = '';
 
+  // Variable para guardar los datos de la tabla
+  listaContenedores: any[] = [];
+
   constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
@@ -69,13 +72,16 @@ export class ContenedoresFormComponent implements OnInit {
     const id = this.contenedoresForm.get('id')?.value;
     const data = this.contenedoresForm.value;
 
+    // Blindaje del ID para que Django no lo rechace
+    delete data.id;
+
     this.apiService.put(`/smartcity/contenedores/${id}/`, data).subscribe({
       next: (response: any) => {
         this.serverMessage = `Update OK. ID ${response.id} actualizado.`;
         console.log('Respuesta (PUT) OK:', response);
       },
       error: (err: any) => {
-        this.serverMessage = `Error al actualizar: ${err?.message || err}`;
+        this.serverMessage = `Error al actualizar: ${JSON.stringify(err.error)}`;
         console.error('Error (PUT) al actualizar contenedor:', err);
       }
     });
@@ -99,7 +105,10 @@ export class ContenedoresFormComponent implements OnInit {
   selectAll(): void {
     this.apiService.get('/smartcity/contenedores/').subscribe({
       next: (response: any) => {
-        const cantidad = response.features ? response.features.length : 0;
+        // DETECTOR INTELIGENTE
+        this.listaContenedores = response.results || response.data || (Array.isArray(response) ? response : []);
+        
+        const cantidad = this.listaContenedores.length;
         this.serverMessage = `Select All OK. Hay ${cantidad} contenedores.`;
         console.log('Respuesta (GET) selectAll OK, cantidad=', cantidad);
       },
@@ -108,6 +117,12 @@ export class ContenedoresFormComponent implements OnInit {
         console.error('Error (GET) selectAll:', err);
       }
     });
+  }
+
+  // FUNCIÓN EXTRA PARA LA TABLA
+  cargarEnFormulario(contenedorClicado: any): void {
+    this.contenedoresForm.patchValue(contenedorClicado);
+    this.serverMessage = `Contenedor ID ${contenedorClicado.id} cargado, listo para actualizar o borrar.`;
   }
 
   clean(): void {

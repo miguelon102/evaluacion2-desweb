@@ -53,4 +53,42 @@
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
   </div>
 
+  <hr style="margin-top: 40px; margin-bottom: 20px;">
+
+  <h3>Listado de Contenedores</h3>
+
+  @if (listaContenedores.length > 0) {
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #ddd;">
+      <thead style="background-color: #f4f4f4; text-align: left;">
+        <tr>
+          <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Tipo de Residuo</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Capacidad (L)</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Última Recogida</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Estado</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Barrio</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (contenedor of listaContenedores; track contenedor.id) {
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 10px;">{{ contenedor.id }}</td>
+            <td style="padding: 10px;">{{ contenedor.tipo_residuo }}</td>
+            <td style="padding: 10px;">{{ contenedor.capacidad_litros }}</td>
+            <td style="padding: 10px;">{{ contenedor.fecha_ultima_recogida }}</td>
+            <td style="padding: 10px;">{{ contenedor.estado_conservacion }}</td>
+            <td style="padding: 10px;">{{ contenedor.barrio }}</td>
+            <td style="padding: 10px;">
+              <button type="button" (click)="cargarEnFormulario(contenedor)" style="cursor: pointer;">
+                Editar
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p style="color: #666; font-style: italic;">No hay contenedores seleccionados. Pulsa "Select All" para cargar la tabla.</p>
+  }
 </div>

@@ -122,18 +122,24 @@ export class ParquesFormComponent implements OnInit {
   selectAll(): void {
     this.apiService.get('/smartcity/parques/').subscribe({
       next: (response: any) => {
-        // Si response es el array directo, simplemente contamos su longitud
-        const cantidad = response.length;
-        this.serverMessage = `Select All OK. Hay registros de ${cantidad} parques.`;
-        console.log('Respuesta (GET) selectAll OK, cantidad=', cantidad);
-        // Si quieres que el usuario vea el primero, podrías hacer:
-        // this.parquesForm.patchValue(response[0]); 
+        // DETECTOR INTELIGENTE: Extrae el array venga en 'results', en 'data', o directo
+        this.listaParques = response.results || response.data || (Array.isArray(response) ? response : []);
+        
+        const cantidad = this.listaParques.length;
+        this.serverMessage = `Select All OK. Hay ${cantidad} parques registrados.`;
+        console.log('Respuesta (GET) selectAll OK:', response);
       },
-  error: (err: any) => {
-        this.serverMessage = `Error en select all: ${err.message}`;
+      error: (err: any) => {
+        this.serverMessage = `Error al pedir todos: ${err?.message || err}`;
         console.error('Error (GET) selectAll:', err);
       }
     });
+  }
+
+  // BOTON EXTRA DE LA TABLA: Para cargar un registro con un clic
+  cargarEnFormulario(parqueClicado: any): void {
+    this.parquesForm.patchValue(parqueClicado);
+    this.serverMessage = `Registro ID ${parqueClicado.id} cargado listo para actualizar o borrar.`;
   }
     
 

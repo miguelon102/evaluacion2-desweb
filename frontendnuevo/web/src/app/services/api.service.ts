@@ -68,27 +68,32 @@ export class ApiService {
     )
   }
 
-  private generarHttpParamsDesdeObjeto(data: { [key: string]: string | number }): string {
-    /**
-     * Gets a string of HttpParams from an object.
-     * By default angular sends the data in request.body
-     *    in this way it senfs the data in the body of the request request.BODY, as
-     *    django expects.
-     * You need also to set the headers in the request
-     *    'Content-Type': 'application/x-www-form-urlencoded'
-     * @param data: an object with key-value pairs {'key': 'value', 'key2': 'value2', ...}
-     * @example {id: '', description: 'gg', area: '236', geom: 'polygon((0 0, 1 0, 1 1, 0 0))'}
-     * @returns {string}: id=&description=gg&area=236&geom=polygon((0%200,%201%200,%201%201,%200%200))
-     * @description
-     * This function takes an object and converts it into a string of HttpParams.
-     */
-    let params = new HttpParams();
-    for (const key in data) {
-      if (data.hasOwnProperty(key)) {
-        params = params.set(key, data[key].toString()); // Convertimos el valor a string
+  private generarHttpParamsDesdeObjeto(data: { [key: string]: any }): string {
+      /**
+       * Gets a string of HttpParams from an object.
+       * By default angular sends the data in request.body
+       * in this way it senfs the data in the body of the request request.BODY, as
+       * django expects.
+       * You need also to set the headers in the request
+       * 'Content-Type': 'application/x-www-form-urlencoded'
+       * @param data: an object with key-value pairs {'key': 'value', 'key2': 'value2', ...}
+       * @example {id: '', description: 'gg', area: '236', geom: 'polygon((0 0, 1 0, 1 1, 0 0))'}
+       * @returns {string}: id=&description=gg&area=236&geom=polygon((0%200,%201%200,%201%201,%200%200))
+       * @description
+       * This function takes an object and converts it into a string of HttpParams.
+       */
+      let params = new HttpParams();
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          let value = data[key];
+          
+          // PARACAÍDAS: Si el valor es null/undefined, lo pasamos a texto vacío para que no colapse
+          if (value === null || value === undefined) {
+            value = '';
+          }
+          
+          params = params.set(key, value.toString()); // Convertimos el valor a string de forma segura
+        }
       }
-    }
-    return params.toString();
-  }
-}
-
+      return params.toString();
+    }}

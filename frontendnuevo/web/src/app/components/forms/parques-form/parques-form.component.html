@@ -53,4 +53,39 @@
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
   </div>
 
+    <hr style="margin-top: 40px; margin-bottom: 20px;">
+
+  <h3>Listado de Parques</h3>
+
+  @if (listaParques.length > 0) {
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px; border: 1px solid #ddd;">
+      <thead style="background-color: #f4f4f4; text-align: left;">
+        <tr>
+          <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Nombre</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Área (ha)</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Zona Infantil</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (parque of listaParques; track parque.id) {
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 10px;">{{ parque.id }}</td>
+            <td style="padding: 10px;">{{ parque.nombre }}</td>
+            <td style="padding: 10px;">{{ parque.area_hectareas }}</td>
+            <td style="padding: 10px;">{{ parque.tiene_zona_infantil ? 'Sí' : 'No' }}</td>
+            <td style="padding: 10px;">
+              <button type="button" (click)="cargarEnFormulario(parque)" style="cursor: pointer;">
+                Editar
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p style="color: #666; font-style: italic;">No hay parques seleccionados. Pulsa "Select All" para cargar la tabla.</p>
+  }
+
 </div>
