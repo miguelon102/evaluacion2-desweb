@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 // --- NUEVOS IMPORTS ---
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
+import { WKT } from 'ol/format'; // <-- Importación necesaria para leer la geometría
 
 @Component({
   selector: 'app-carriles-form',
@@ -102,8 +103,47 @@ export class CarrilesFormComponent implements OnInit {
       next: (response: any) => {
         this.listaCarriles = response.results || response.data || (Array.isArray(response) ? response : []);
         this.serverMessage = `Select All OK. Hay ${this.listaCarriles.length} carriles registrados.`;
+        console.log('Respuesta (GET) selectAll OK:', response);
+
+        // --- NUEVA LLAMADA PARA PINTAR ---
+        this.dibujarEnMapa(this.listaCarriles);
+      },
+      error: (err: any) => {
+        this.serverMessage = `Error al pedir todos: ${err?.message || err}`;
+        console.error('Error (GET) selectAll:', err);
       }
     });
+  }
+
+  // --- NUEVA FUNCIÓN PARA PINTAR EN EL MAPA ---
+  dibujarEnMapa(lista: any[]): void {
+    const vectorLayer = this.mapService.getLayerByTitle('Carriles vector');
+    const source = vectorLayer?.getSource();
+    if (!source) {
+      console.error('No se encontró la capa "Carriles vector"');
+      return;
+    }
+
+    source.clear(); // Limpiamos lo que hubiera antes para no duplicar
+
+    const wktFormat = new WKT();
+    lista.forEach(item => {
+      if (item.geom) {
+        try {
+          const feature = wktFormat.readFeature(item.geom, {
+            dataProjection: 'EPSG:25830',
+            featureProjection: 'EPSG:25830'
+          });
+          feature.setId(item.id);                  // ID real de la BD
+          feature.set('tableName', 'carriles');    // Para saber de qué formulario viene
+          feature.set('attributes', item);         // Guardamos todos los datos dentro del dibujo
+          source.addFeature(feature);
+        } catch (e) {
+          console.error(`Error leyendo geometría del carril ID ${item.id}`, e);
+        }
+      }
+    });
+    console.log(`${lista.length} carriles dibujados en la capa vector`);
   }
 
   cargarEnFormulario(carrilClicado: any): void {

@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 //NUEVOS IMPORTS
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
+import { WKT, GeoJSON } from 'ol/format';
 
 @Component({
   selector: 'app-parques-form',
@@ -145,6 +146,8 @@ export class ParquesFormComponent implements OnInit {
         const cantidad = this.listaParques.length;
         this.serverMessage = `Select All OK. Hay ${cantidad} parques registrados.`;
         console.log('Respuesta (GET) selectAll OK:', response);
+
+        this.dibujarEnMapa(this.listaParques);
       },
       error: (err: any) => {
         this.serverMessage = `Error al pedir todos: ${err?.message || err}`;
@@ -153,7 +156,42 @@ export class ParquesFormComponent implements OnInit {
     });
   }
 
-  // BOTON EXTRA DE LA TABLA: Para cargar un registro con un clic
+  // NUEVA FUNCIÓN A PRUEBA DE BALAS Y DE TYPESCRIPT
+  dibujarEnMapa(lista: any[]): void {
+    const vectorLayer = this.mapService.getLayerByTitle('Parques vector');
+    const source = vectorLayer?.getSource();
+    if (!source) {
+      console.error('No se encontró la capa "Parques vector"');
+      return;
+    }
+
+    source.clear(); // Limpiamos lo que hubiera antes
+    const wktFormat = new WKT();
+
+    lista.forEach(item => {
+      // Usamos el nombre real que viene de Django
+      if (item.geom_wkt) { 
+        try {
+          let feature: any = wktFormat.readFeature(item.geom_wkt, {
+            dataProjection: 'EPSG:25830',
+            featureProjection: 'EPSG:25830'
+          });
+
+          if (feature) {
+            feature.setId(item.id);                  
+            feature.set('tableName', 'parques');    
+            feature.set('attributes', item);        
+            source.addFeature(feature);
+          }
+        } catch (e) {
+          console.error(`Error dibujando parque ID ${item.id}`, e);
+        }
+      }
+    });
+    console.log(`${source.getFeatures().length} parques dibujados REALMENTE en la capa vector`);
+  }
+
+  // BOTON EXTRA DE LA TABLA: Para cargar registro con un clic
   cargarEnFormulario(parqueClicado: any): void {
     this.parquesForm.patchValue(parqueClicado);
     this.serverMessage = `Registro ID ${parqueClicado.id} cargado listo para actualizar o borrar.`;
