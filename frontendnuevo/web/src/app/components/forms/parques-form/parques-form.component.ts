@@ -58,6 +58,7 @@ export class ParquesFormComponent implements OnInit {
         startWith(''),
         map(value => this.filtrar(value, this.mantenimientos))
       );
+      this.listaParques = [...this.listaParques];
     });
   }
 
@@ -73,9 +74,14 @@ export class ParquesFormComponent implements OnInit {
   // TRADUCTOR PARA LA TABLA
   getMantenimientoNombre(id: any): string {
     if (!id) return '';
+    // 1. Si es objeto, devolvemos el nombre directo
     if (typeof id === 'object' && id.nombre) return id.nombre;
-    // Si Django manda una URL con barras, sacamos el número del final
+    
+    // 2. Si es URL/ID, limpiamos el ID
     let cleanId = String(id).split('/').filter(p => p.trim() !== '').pop() || String(id);
+    
+    // 3. BUSQUEDA FORZADA: Si no encuentra el objeto, devolvemos el ID
+    // pero al menos ahora es String para comparar bien
     const obj = this.mantenimientos.find(m => String(m.id) === cleanId);
     return obj ? obj.nombre : cleanId;
   }

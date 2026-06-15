@@ -4,8 +4,9 @@ import { ApiService } from '../../../services/api.service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-logout.form',
+  selector: 'app-logout-form',
   standalone: true,
+  imports: [],
   templateUrl: './logout-form.component.html',
   styleUrl: './logout-form.component.scss'
 })
@@ -18,16 +19,17 @@ export class LogoutFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Le pedimos a Django que destruya el token en su base de datos
+    // Intentamos avisar al backend de que cerramos sesión
     this.apiService.post('core/logout/', {}).subscribe({
       next: () => this.finalizar(),
-      error: () => this.finalizar()
+      error: () => this.finalizar() // Si falla, cerramos igual por seguridad
     });
   }
 
   finalizar() {
-    // Destruimos la llave del navegador y volvemos a inicio
     this.authService.logoutLocal();
     this.router.navigate(['/home']);
   }
 }
+
+
