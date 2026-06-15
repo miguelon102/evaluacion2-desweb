@@ -5,12 +5,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
 import { WKT } from 'ol/format';
-
 import { CodelistService } from '../../../services/codelist.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-carriles-form',
@@ -24,7 +24,6 @@ export class CarrilesFormComponent implements OnInit {
   carrilesForm!: FormGroup;
   serverMessage: string = '';
   listaCarriles: any[] = []; 
-
   pavimentos: any[] = [];
   pavimentosFiltrados!: Observable<any[]>;
 
@@ -33,7 +32,8 @@ export class CarrilesFormComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     public mapService: MapService,
     public router: Router,
-    private codelistService: CodelistService
+    private codelistService: CodelistService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +70,15 @@ export class CarrilesFormComponent implements OnInit {
     return item && item.nombre ? item.nombre : '';
   }
 
+  // TRADUCTOR PARA LA TABLA
+  getPavimentoNombre(id: any): string {
+    if (!id) return '';
+    if (typeof id === 'object' && id.nombre) return id.nombre;
+    let cleanId = String(id).split('/').filter(p => p.trim() !== '').pop() || String(id);
+    const obj = this.pavimentos.find(p => String(p.id) === cleanId);
+    return obj ? obj.nombre : cleanId;
+  }
+
   private extraerIdCodelist(valor: any, lista: any[]): number | null {
     if (!valor) return null;
     if (typeof valor === 'object' && valor.id) return valor.id;
@@ -83,7 +92,6 @@ export class CarrilesFormComponent implements OnInit {
   insert(): void {
     const data = { ...this.carrilesForm.value };
     delete data.id; 
-    
     data.tipo_pavimento = this.extraerIdCodelist(data.tipo_pavimento, this.pavimentos);
 
     this.apiService.post('/smartcity/carriles/', data).subscribe({
@@ -108,7 +116,6 @@ export class CarrilesFormComponent implements OnInit {
           const pObj = this.pavimentos.find(p => p.id === response.tipo_pavimento);
           if (pObj) this.carrilesForm.get('tipo_pavimento')?.setValue(pObj);
         }
-
         this.listaCarriles = [response];
         this.serverMessage = `Registro ${id} cargado.`;
       }

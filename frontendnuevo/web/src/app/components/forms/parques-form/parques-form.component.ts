@@ -4,14 +4,13 @@ import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
-import { WKT, GeoJSON } from 'ol/format';
-
-// --- NUEVOS IMPORTS PARA AUTOCOMPLETE ---
+import { WKT } from 'ol/format';
 import { CodelistService } from '../../../services/codelist.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-parques-form',
@@ -25,7 +24,6 @@ export class ParquesFormComponent implements OnInit {
   parquesForm!: FormGroup;
   serverMessage: string = '';
   listaParques: any[] = [];
-
   mantenimientos: any[] = [];
   mantenimientosFiltrados!: Observable<any[]>;
 
@@ -34,7 +32,8 @@ export class ParquesFormComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     public mapService: MapService,
     public router: Router,
-    private codelistService: CodelistService
+    private codelistService: CodelistService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +52,6 @@ export class ParquesFormComponent implements OnInit {
       if (geom) this.parquesForm.get('geom')?.setValue(geom);
     });
 
-    // Cargar Catálogo
     this.codelistService.getTiposMantenimiento().subscribe((data: any) => {
       this.mantenimientos = data;
       this.mantenimientosFiltrados = this.parquesForm.get('tipo_mantenimiento')!.valueChanges.pipe(
@@ -63,7 +61,6 @@ export class ParquesFormComponent implements OnInit {
     });
   }
 
-  // --- LÓGICAS AUTOCOMPLETE ---
   private filtrar(value: any, lista: any[]): any[] {
     const filterValue = (typeof value === 'string' ? value : value?.nombre || '').toLowerCase();
     return lista.filter(item => item.nombre.toLowerCase().includes(filterValue));
@@ -71,6 +68,16 @@ export class ParquesFormComponent implements OnInit {
 
   displayNombre(item: any): string {
     return item && item.nombre ? item.nombre : '';
+  }
+
+  // TRADUCTOR PARA LA TABLA
+  getMantenimientoNombre(id: any): string {
+    if (!id) return '';
+    if (typeof id === 'object' && id.nombre) return id.nombre;
+    // Si Django manda una URL con barras, sacamos el número del final
+    let cleanId = String(id).split('/').filter(p => p.trim() !== '').pop() || String(id);
+    const obj = this.mantenimientos.find(m => String(m.id) === cleanId);
+    return obj ? obj.nombre : cleanId;
   }
 
   private extraerIdCodelist(valor: any, lista: any[]): number | null {
@@ -83,11 +90,9 @@ export class ParquesFormComponent implements OnInit {
     return null;
   }
 
-  // --- CRUD RESTO IGUAL ---
   insert(): void {
     const parqueData = { ...this.parquesForm.value };
     delete parqueData.id; 
-    
     parqueData.tipo_mantenimiento = this.extraerIdCodelist(parqueData.tipo_mantenimiento, this.mantenimientos);
     
     this.apiService.post('/smartcity/parques/', parqueData).subscribe({
@@ -111,12 +116,10 @@ export class ParquesFormComponent implements OnInit {
         this.parquesForm.patchValue(response);
         if (response.geom_wkt) this.parquesForm.get('geom')?.setValue(response.geom_wkt);
         
-        // Traducir ID a Objeto para el Autocomplete
         if (response.tipo_mantenimiento) {
           const obj = this.mantenimientos.find(m => m.id === response.tipo_mantenimiento);
           if (obj) this.parquesForm.get('tipo_mantenimiento')?.setValue(obj);
         }
-
         this.listaParques = [response];
         this.serverMessage = `Registro ${id} cargado correctamente.`;
       },

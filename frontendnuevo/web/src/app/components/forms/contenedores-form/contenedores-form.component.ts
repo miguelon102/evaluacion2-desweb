@@ -5,12 +5,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
 import { WKT } from 'ol/format';
-
 import { CodelistService } from '../../../services/codelist.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-contenedores-form',
@@ -24,7 +24,6 @@ export class ContenedoresFormComponent implements OnInit {
   contenedoresForm!: FormGroup;
   serverMessage: string = '';
   listaContenedores: any[] = [];
-
   barrios: any[] = [];
   residuos: any[] = [];
   barriosFiltrados!: Observable<any[]>;
@@ -35,7 +34,8 @@ export class ContenedoresFormComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     public mapService: MapService,
     public router: Router,
-    private codelistService: CodelistService
+    private codelistService: CodelistService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -54,7 +54,6 @@ export class ContenedoresFormComponent implements OnInit {
       if (geom) this.contenedoresForm.get('geom')?.setValue(geom);
     });
 
-    // Cargar Catálogos
     this.codelistService.getBarrios().subscribe((data: any) => {
       this.barrios = data;
       this.barriosFiltrados = this.contenedoresForm.get('barrio')!.valueChanges.pipe(
@@ -81,6 +80,23 @@ export class ContenedoresFormComponent implements OnInit {
     return item && item.nombre ? item.nombre : '';
   }
 
+  // TRADUCTORES PARA LA TABLA
+  getBarrioNombre(id: any): string {
+    if (!id) return '';
+    if (typeof id === 'object' && id.nombre) return id.nombre;
+    let cleanId = String(id).split('/').filter(p => p.trim() !== '').pop() || String(id);
+    const obj = this.barrios.find(b => String(b.id) === cleanId);
+    return obj ? obj.nombre : cleanId;
+  }
+
+  getResiduoNombre(id: any): string {
+    if (!id) return '';
+    if (typeof id === 'object' && id.nombre) return id.nombre;
+    let cleanId = String(id).split('/').filter(p => p.trim() !== '').pop() || String(id);
+    const obj = this.residuos.find(r => String(r.id) === cleanId);
+    return obj ? obj.nombre : cleanId;
+  }
+
   private extraerIdCodelist(valor: any, lista: any[]): number | null {
     if (!valor) return null;
     if (typeof valor === 'object' && valor.id) return valor.id;
@@ -94,7 +110,6 @@ export class ContenedoresFormComponent implements OnInit {
   insert(): void {
     const data = { ...this.contenedoresForm.value };
     delete data.id; 
-    
     data.barrio = this.extraerIdCodelist(data.barrio, this.barrios);
     data.tipo_residuo = this.extraerIdCodelist(data.tipo_residuo, this.residuos);
     
@@ -127,7 +142,6 @@ export class ContenedoresFormComponent implements OnInit {
           const tObj = this.residuos.find(r => r.id === response.tipo_residuo);
           if (tObj) this.contenedoresForm.get('tipo_residuo')?.setValue(tObj);
         }
-
         this.listaContenedores = [response];
         this.serverMessage = `Registro ${id} cargado.`;
       }
@@ -215,6 +229,7 @@ export class ContenedoresFormComponent implements OnInit {
     this.serverMessage = 'Formulario y tabla vaciados.';
   }
 }
+
 
 
 

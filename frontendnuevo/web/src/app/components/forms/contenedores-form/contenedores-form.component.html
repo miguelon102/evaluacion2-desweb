@@ -1,9 +1,6 @@
 <div class="form-container">
   <h2>Gestión de Contenedores</h2>
-
-  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">
-    {{ serverMessage }}
-  </p>
+  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">{{ serverMessage }}</p>
 
   <form [formGroup]="contenedoresForm">
     <div>
@@ -11,7 +8,7 @@
       <input type="number" id="id" formControlName="id">
     </div>
 
-<div>
+    <div>
       <label for="tipo_residuo">Tipo Residuo: </label>
       <input type="text" id="tipo_residuo" formControlName="tipo_residuo" [matAutocomplete]="autoRes">
       <mat-autocomplete #autoRes="matAutocomplete" [displayWith]="displayNombre">
@@ -26,18 +23,13 @@
       }
     </div>
 
-
     <div>
       <label for="capacidad_litros">Capacidad (Litros): </label>
       <input type="number" id="capacidad_litros" formControlName="capacidad_litros" step="any">
       @if (contenedoresForm.get('capacidad_litros')?.invalid && contenedoresForm.get('capacidad_litros')?.touched) {
         <div style="color: red; font-size: 0.85em; margin-top: 5px;">
-          @if (contenedoresForm.get('capacidad_litros')?.hasError('min')) {
-            <span>La capacidad no puede ser negativa.</span>
-          }
-          @if (contenedoresForm.get('capacidad_litros')?.hasError('pattern')) {
-            <span>Solo se permiten números válidos (ej: 100.5).</span>
-          }
+          @if (contenedoresForm.get('capacidad_litros')?.hasError('min')) { <span>La capacidad no puede ser negativa.</span> }
+          @if (contenedoresForm.get('capacidad_litros')?.hasError('pattern')) { <span>Solo se permiten números válidos (ej: 100.5).</span> }
         </div>
       }
     </div>
@@ -74,17 +66,22 @@
   </form>
 
   <div class="botones-container" style="margin-top: 20px;">
-    <button (click)="insert()" [disabled]="contenedoresForm.invalid">Insert</button>
+    @if (authService.isEditor()) {
+      <button (click)="insert()" [disabled]="contenedoresForm.invalid">Insert</button>
+      <button (click)="update()" [disabled]="contenedoresForm.invalid">Update</button>
+      <button (click)="delete()">Delete</button>
+    } @else {
+      <p style="color:red; font-weight: bold; margin-bottom: 10px;">
+        ⚠️ Modo Lectura: No tienes permisos para insertar, actualizar o borrar.
+      </p>
+    }
     <button (click)="selectOne()">Select One</button>
     <button (click)="selectAll()">Select All</button>
-    <button (click)="update()" [disabled]="contenedoresForm.invalid">Update</button>
-    <button (click)="delete()">Delete</button>
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
     <button type="button" routerLink="/map">Volver al Mapa</button>
   </div>
 
   <hr style="margin-top: 40px; margin-bottom: 20px;">
-
   <h3>Listado de Contenedores</h3>
 
   @if (listaContenedores.length > 0) {
@@ -104,11 +101,11 @@
         @for (contenedor of listaContenedores; track contenedor.id) {
           <tr style="border-bottom: 1px solid #ddd;">
             <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.id }}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.tipo_residuo?.nombre || contenedor.tipo_residuo }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ getResiduoNombre(contenedor.tipo_residuo) }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.capacidad_litros }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.fecha_ultima_recogida }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.estado_conservacion }}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ contenedor.barrio?.nombre || contenedor.barrio }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ getBarrioNombre(contenedor.barrio) }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">
               <button type="button" (click)="cargarEnFormulario(contenedor)" style="cursor: pointer;">Editar</button>
             </td>

@@ -1,12 +1,8 @@
 <div class="form-container">
   <h2>Gestión de Carriles Bici</h2>
-
-  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">
-    {{ serverMessage }}
-  </p>
+  <p class="mensaje-servidor" style="color: blue; font-weight: bold;">{{ serverMessage }}</p>
 
   <form [formGroup]="carrilesForm">
-    
     <div>
       <label for="id">ID (Sólo para SelectOne, Update y Delete): </label>
       <input type="number" id="id" formControlName="id">
@@ -17,12 +13,8 @@
       <input type="text" id="nombre_calle" formControlName="nombre_calle">
       @if (carrilesForm.get('nombre_calle')?.invalid && carrilesForm.get('nombre_calle')?.touched) {
         <div style="color: red; font-size: 0.85em; margin-top: 5px;">
-          @if (carrilesForm.get('nombre_calle')?.hasError('required')) {
-            <span>El nombre de la calle es obligatorio.</span>
-          }
-          @if (carrilesForm.get('nombre_calle')?.hasError('minlength')) {
-            <span>El nombre debe tener al menos 3 caracteres.</span>
-          }
+          @if (carrilesForm.get('nombre_calle')?.hasError('required')) { <span>El nombre de la calle es obligatorio.</span> }
+          @if (carrilesForm.get('nombre_calle')?.hasError('minlength')) { <span>El nombre debe tener al menos 3 caracteres.</span> }
         </div>
       }
     </div>
@@ -32,12 +24,8 @@
       <input type="number" id="longitud_metros" formControlName="longitud_metros" step="any">
       @if (carrilesForm.get('longitud_metros')?.invalid && carrilesForm.get('longitud_metros')?.touched) {
         <div style="color: red; font-size: 0.85em; margin-top: 5px;">
-          @if (carrilesForm.get('longitud_metros')?.hasError('min')) {
-            <span>La longitud no puede ser negativa.</span>
-          }
-          @if (carrilesForm.get('longitud_metros')?.hasError('pattern')) {
-            <span>Solo se permiten números válidos (ej: 1500.5).</span>
-          }
+          @if (carrilesForm.get('longitud_metros')?.hasError('min')) { <span>La longitud no puede ser negativa.</span> }
+          @if (carrilesForm.get('longitud_metros')?.hasError('pattern')) { <span>Solo se permiten números válidos (ej: 1500.5).</span> }
         </div>
       }
     </div>
@@ -62,11 +50,8 @@
       <input type="number" id="anyo_construccion" formControlName="anyo_construccion">
       @if (carrilesForm.get('anyo_construccion')?.invalid && carrilesForm.get('anyo_construccion')?.touched) {
         <div style="color: red; font-size: 0.85em; margin-top: 5px;">
-          @if (carrilesForm.get('anyo_construccion')?.hasError('pattern')) {
-            <span>Introduce un año válido de 4 dígitos (ej: 2010).</span>
-          } @else {
-            <span>El año debe estar entre 1900 y 2030.</span>
-          }
+          @if (carrilesForm.get('anyo_construccion')?.hasError('pattern')) { <span>Introduce un año válido de 4 dígitos.</span> } 
+          @else { <span>El año debe estar entre 1900 y 2030.</span> }
         </div>
       }
     </div>
@@ -80,21 +65,25 @@
         </div>
       }
     </div>
-
   </form>
 
   <div class="botones-container" style="margin-top: 20px;">
-    <button (click)="insert()" [disabled]="carrilesForm.invalid">Insert</button>
+    @if (authService.isEditor()) {
+      <button (click)="insert()" [disabled]="carrilesForm.invalid">Insert</button>
+      <button (click)="update()" [disabled]="carrilesForm.invalid">Update</button>
+      <button (click)="delete()">Delete</button>
+    } @else {
+      <p style="color:red; font-weight: bold; margin-bottom: 10px;">
+        ⚠️ Modo Lectura: No tienes permisos para insertar, actualizar o borrar.
+      </p>
+    }
     <button (click)="selectOne()">Select One</button>
     <button (click)="selectAll()">Select All</button>
-    <button (click)="update()" [disabled]="carrilesForm.invalid">Update</button>
-    <button (click)="delete()">Delete</button>
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
     <button type="button" routerLink="/map">Volver al Mapa</button>
   </div>
 
   <hr style="margin-top: 40px; margin-bottom: 20px;">
-
   <h3>Listado de Carriles Bici</h3>
 
   @if (listaCarriles.length > 0) {
@@ -116,7 +105,7 @@
             <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.id }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.nombre_calle }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.longitud_metros }}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.tipo_pavimento?.nombre || carril.tipo_pavimento }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ getPavimentoNombre(carril.tipo_pavimento) }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.sentido_unico ? 'Sí' : 'No' }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">{{ carril.anyo_construccion }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">

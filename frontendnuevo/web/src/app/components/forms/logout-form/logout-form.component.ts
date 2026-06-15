@@ -1,39 +1,33 @@
-import { Component } from '@angular/core';
-//To use forms 
-//  Import in the imports on the component the following
-
-import { MatButtonModule } from '@angular/material/button';
-
-//To use the controls in the component
-//  Import in the imports on the component the following
-import { ServerAnswerModel } from '../../../models/server-answer.model';
-import { ApiService } from '../../../services/api.service';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
+import { ApiService } from '../../../services/api.service';
+import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-logout-form',
+  selector: 'app-logout.form',
   standalone: true,
-  imports: [MatButtonModule],
   templateUrl: './logout-form.component.html',
   styleUrl: './logout-form.component.scss'
 })
-export class LogoutFormComponent {
-  serverMessage = '';
-  constructor(private apiService:ApiService, private authService: AuthService){}
-  logout(){
+export class LogoutFormComponent implements OnInit {
+  
+  constructor(
+    private authService: AuthService,
+    private apiService: ApiService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    // Le pedimos a Django que destruya el token en su base de datos
     this.apiService.post('core/logout/', {}).subscribe({
-          next: (response: ServerAnswerModel) => {
-            if (response.ok){
-              this.authService.username = '';
-              this.authService.isAuthenticated = false;
-            }
-            this.serverMessage=response.message;
-          },
-          error: (error:any)=>{
-            console.log(error.description)
-            this
-          }
-        })//subscribe
+      next: () => this.finalizar(),
+      error: () => this.finalizar()
+    });
   }
 
+  finalizar() {
+    // Destruimos la llave del navegador y volvemos a inicio
+    this.authService.logoutLocal();
+    this.router.navigate(['/home']);
+  }
 }
