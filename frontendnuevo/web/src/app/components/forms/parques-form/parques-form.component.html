@@ -6,7 +6,6 @@
   </p>
 
   <form [formGroup]="parquesForm">
-    
     <div>
       <label for="id">ID (Sólo para SelectOne, Update y Delete): </label>
       <input type="number" id="id" formControlName="id">
@@ -15,11 +14,31 @@
     <div>
       <label for="nombre">Nombre: </label>
       <input type="text" id="nombre" formControlName="nombre">
+      @if (parquesForm.get('nombre')?.invalid && parquesForm.get('nombre')?.touched) {
+        <div style="color: red; font-size: 0.85em; margin-top: 5px;">
+          @if (parquesForm.get('nombre')?.hasError('required')) {
+            <span>El nombre es obligatorio.</span>
+          }
+          @if (parquesForm.get('nombre')?.hasError('minlength')) {
+            <span>El nombre debe tener al menos 3 caracteres.</span>
+          }
+        </div>
+      }
     </div>
 
     <div>
       <label for="area_hectareas">Área (Hectáreas): </label>
-      <input type="number" id="area_hectareas" formControlName="area_hectareas">
+      <input type="number" id="area_hectareas" formControlName="area_hectareas" step="any">
+      @if (parquesForm.get('area_hectareas')?.invalid && parquesForm.get('area_hectareas')?.touched) {
+        <div style="color: red; font-size: 0.85em; margin-top: 5px;">
+          @if (parquesForm.get('area_hectareas')?.hasError('min')) {
+            <span>El área no puede ser negativa.</span>
+          }
+          @if (parquesForm.get('area_hectareas')?.hasError('pattern')) {
+            <span>Solo se permiten números válidos (usa punto para decimales).</span>
+          }
+        </div>
+      }
     </div>
 
     <div>
@@ -34,27 +53,36 @@
 
     <div>
       <label for="tipo_mantenimiento">Mantenimiento: </label>
-      <input type="text" id="tipo_mantenimiento" formControlName="tipo_mantenimiento">
+      <input type="text" id="tipo_mantenimiento" formControlName="tipo_mantenimiento" [matAutocomplete]="autoMant">
+      <mat-autocomplete #autoMant="matAutocomplete" [displayWith]="displayNombre">
+        @for (opcion of (mantenimientosFiltrados | async); track opcion.id) {
+          <mat-option [value]="opcion">{{ opcion.nombre }}</mat-option>
+        }
+      </mat-autocomplete>
     </div>
 
     <div>
       <label for="geom">Geometría (WKT Polygon): </label>
       <textarea id="geom" formControlName="geom" rows="3" cols="50"></textarea>
+      @if (parquesForm.get('geom')?.invalid && parquesForm.get('geom')?.touched) {
+        <div style="color: red; font-size: 0.85em; margin-top: 5px;">
+          <span>La geometría es obligatoria (dibújala en el mapa).</span>
+        </div>
+      }
     </div>
-
   </form>
 
   <div class="botones-container" style="margin-top: 20px;">
-    <button (click)="insert()">Insert</button>
+    <button (click)="insert()" [disabled]="parquesForm.invalid">Insert</button>
     <button (click)="selectOne()">Select One</button>
     <button (click)="selectAll()">Select All</button>
-    <button (click)="update()">Update</button>
+    <button (click)="update()" [disabled]="parquesForm.invalid">Update</button>
     <button (click)="delete()">Delete</button>
     <button (click)="clean()" style="background-color: lightcoral;">Clean</button>
     <button type="button" routerLink="/map">Volver al Mapa</button>
   </div>
 
-    <hr style="margin-top: 40px; margin-bottom: 20px;">
+  <hr style="margin-top: 40px; margin-bottom: 20px;">
 
   <h3>Listado de Parques</h3>
 
@@ -66,27 +94,31 @@
           <th style="padding: 10px; border: 1px solid #ddd;">Nombre</th>
           <th style="padding: 10px; border: 1px solid #ddd;">Área (ha)</th>
           <th style="padding: 10px; border: 1px solid #ddd;">Zona Infantil</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Horario Cierre</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">Mantenimiento</th>
           <th style="padding: 10px; border: 1px solid #ddd;">Acción</th>
         </tr>
       </thead>
       <tbody>
         @for (parque of listaParques; track parque.id) {
           <tr style="border-bottom: 1px solid #ddd;">
-            <td style="padding: 10px;">{{ parque.id }}</td>
-            <td style="padding: 10px;">{{ parque.nombre }}</td>
-            <td style="padding: 10px;">{{ parque.area_hectareas }}</td>
-            <td style="padding: 10px;">{{ parque.tiene_zona_infantil ? 'Sí' : 'No' }}</td>
-            <td style="padding: 10px;">
-              <button type="button" (click)="cargarEnFormulario(parque)" style="cursor: pointer;">
-                Editar
-              </button>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.id }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.nombre }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.area_hectareas }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.tiene_zona_infantil ? 'Sí' : 'No' }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.horario_cierre }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ parque.tipo_mantenimiento?.nombre || parque.tipo_mantenimiento }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+              <button type="button" (click)="cargarEnFormulario(parque)" style="cursor: pointer;">Editar</button>
             </td>
           </tr>
         }
       </tbody>
     </table>
   } @else {
-    <p style="color: #666; font-style: italic;">No hay parques seleccionados. Pulsa "Select All" para cargar la tabla.</p>
+    <p style="color: #666; font-style: italic;">No hay parques seleccionados en la tabla.</p>
   }
-
 </div>
+
+
+

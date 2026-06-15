@@ -1,61 +1,76 @@
 import { Component } from '@angular/core';
-
-//To use forms 
-//  Import in the imports on the component the following
-import { ReactiveFormsModule } from '@angular/forms';
-import {MatInputModule} from "@angular/material/input";//angular material must be installed before
+import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatInputModule } from "@angular/material/input";
 import { MatTooltip } from '@angular/material/tooltip';
-import {MatCardModule} from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
-
-//To use the controls in the component
-//  Import in the imports on the component the following
-import {FormControl} from '@angular/forms';
-import {FormGroup, Validators} from '@angular/forms';
-import { ServerAnswerModel } from '../../../models/server-answer.model';
-import { ApiService } from '../../../services/api.service';
 import { MatButtonModule } from '@angular/material/button';
-import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
 
+import { ApiService } from '../../../services/api.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login.form',
   standalone: true,
-  imports: [MatInputModule, ReactiveFormsModule, MatTooltip, MatButtonModule, CommonModule],
+  imports: [MatInputModule, ReactiveFormsModule, MatTooltip, MatButtonModule, CommonModule, MatCardModule],
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.scss'
 })
 export class LoginFormComponent {
   serverMessage = '';
-  //Form component creation
-  username = new FormControl('', [Validators.required,Validators.minLength(4)]);
-  password =  new FormControl('', [Validators.required,Validators.minLength(4)]);
+  
+  username = new FormControl('', [Validators.required, Validators.minLength(4)]);
+  password = new FormControl('', [Validators.required, Validators.minLength(4)]);
 
-  //Create a form group to eval the data at once
   controlsGroup = new FormGroup({
     username: this.username,
     password: this.password,
-  })
+  });
 
-  //Pay attention to::
-  //  - Services must be injected in the constructor
-  //  - Services are not imported in the component, in the imports array
-  constructor(private apiService:ApiService, private authService: AuthService){}
+  constructor(
+    private apiService: ApiService, 
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
-  login(){
-    this.serverMessage='';
+  login() {
+    this.serverMessage = '';
 
-    this.apiService.post('core/login/', this.controlsGroup.value).subscribe({
-          next: (response: ServerAnswerModel) => {
-            if (response.ok){
-              this.authService.username = this.username.value!; //! is a non-null assertion operator
-              this.authService.isAuthenticated = true;
-            }
-            this.serverMessage=response.message;
-          },
-          error: (error:any)=>{
-            console.log(error.description)
-          }
-        })//subscribe
+    // Llamamos a la ruta oficial de Knox del profesor
+    this.apiService.post('core/knox_login/', this.controlsGroup.value).subscribe({
+      next: (response: any) => {
+        
+        // El servidor devuelve la llave dentro de response.data[0].token
+        if (response && response.data && response.data.length > 0 && response.data[0].token) {
+          const token = response.data[0].token;
+          
+          // Guardamos la llave en el navegador para que el api.service la pueda usar
+          localStorage.setItem('knox_token', token);
+          
+          this.authService.username = this.username.value!; 
+          this.authService.isAuthenticated = true;
+          this.serverMessage = '¡Login Correcto!';
+          
+          this.router.navigate(['/map']); 
+        } else {
+          this.serverMessage = 'Login realizado pero no se recibió token.';
+        }
+      },
+      error: (error: any) => {
+        console.error('Error de login capturado:', error);
+        
+        let msg = 'Error de conexión.';
+        if (error.error && error.error.messages) {
+          msg = JSON.stringify(error.error.messages);
+        } else if (error.error && error.error.non_field_errors) {
+          msg = error.error.non_field_errors[0];
+        }
+        this.serverMessage = `Acceso denegado: ${msg}`;
+      }
+    });
   }
 }
+
+
+

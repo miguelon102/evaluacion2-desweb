@@ -42,4 +42,5 @@ urlpatterns = [
     path('flowers/', include('flowers.urls')),
     path('accidentes/', include('accidentes.urls')),
     path('smartcity/', include('smartcity_app.urls')),
+    path('codelist/', include('codelist.urls')),
 ]

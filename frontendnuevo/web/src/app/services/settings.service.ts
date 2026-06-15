@@ -11,7 +11,7 @@ export class SettingsService {
   public WEB_URL;
   constructor() { 
     if (this.mode== 1) {
-      this.API_URL='http://localhost:8001';
+      this.API_URL='http://localhost:8001/';
       this.GEOSERVER_URL='http://localhost:8080/geoserver/';
       this.WEB_URL='http://localhost:4200/';
 

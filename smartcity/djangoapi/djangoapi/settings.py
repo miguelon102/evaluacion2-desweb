@@ -81,7 +81,7 @@ INSTALLED_APPS = [
     'buildings',
     'flowers',
     'accidentes',
-    'smartcity_app'
+    'smartcity_app',
 ]
 
 MIDDLEWARE = [

@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
-
-//To be able to set http requests
-
-import { HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
-
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { SettingsService } from './settings.service';
 
 @Injectable({
@@ -11,89 +7,98 @@ import { SettingsService } from './settings.service';
 })
 export class ApiService {
 
-  headers = new HttpHeaders({
-    'Content-Type': 'application/x-www-form-urlencoded'
-  })
+  constructor(public settingsService: SettingsService, private httpClient: HttpClient) { }
 
-  constructor(public settingsService:SettingsService, private httpClient:HttpClient) { }
-
-  get(endPointUrl:string, getParams:HttpParams=new HttpParams({})){
-    return this.httpClient.get<any>(this.settingsService.API_URL + endPointUrl,
-      {
-        headers: this.headers, 
-        responseType : 'json', 
-        reportProgress: false,
-        params: getParams,
-        withCredentials: true, //withCredentials. Necessary to send cookies: sessionid, csrf, ...
-      })
+  // 1. LIMPIADOR DE URLs: Evita el fallo del '//' concatenando limpiamente
+  private getCleanUrl(endPointUrl: string): string {
+    const baseUrl = this.settingsService.API_URL || ''; // <--- SOLUCIÓN: Si es undefined, usa ''
+    const base = baseUrl.replace(/\/$/, ''); // Quita slash final
+    const path = endPointUrl.replace(/^\//, ''); // Quita slash inicial
+    return `${base}/${path}`;
   }
 
-  post(endPointUrl:string, postParams:{}={}){
+  // 2. INYECTOR DE LLAVES (KNOX TOKEN): Adjunta el token de seguridad si existe
+  private getHeaders(): HttpHeaders {
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
+    
+    // Recuperamos el token que guardaremos en el Login
+    const token = localStorage.getItem('knox_token');
+    if (token) {
+      headers = headers.set('Authorization', `Token ${token}`);
+    }
+    return headers;
+  }
+
+  get(endPointUrl: string, getParams: HttpParams = new HttpParams({})) {
+    return this.httpClient.get<any>(this.getCleanUrl(endPointUrl), {
+      headers: this.getHeaders(),
+      responseType: 'json',
+      reportProgress: false,
+      params: getParams,
+      withCredentials: true,
+    });
+  }
+
+  post(endPointUrl: string, postParams: {} = {}) {
     var postData = this.generarHttpParamsDesdeObjeto(postParams);
-    console.log('postParams',postParams);
-    console.log('postData',postData);
-
-      return this.httpClient.post<any>(
-        this.settingsService.API_URL + endPointUrl,
-        postData,
-        { headers: this.headers, 
-          responseType : 'json', 
-          reportProgress: false,
-          withCredentials: true, //withCredentials. Necessary to send cookies: sessionid, csrf, ...
-        }
-      )
+    return this.httpClient.post<any>(
+      this.getCleanUrl(endPointUrl),
+      postData,
+      { 
+        headers: this.getHeaders(), 
+        responseType: 'json', 
+        reportProgress: false,
+        withCredentials: true,
+      }
+    );
   }
 
-  put(endPointUrl:string, putParams:{}={}){
+  put(endPointUrl: string, putParams: {} = {}) {
     var putData = this.generarHttpParamsDesdeObjeto(putParams);
     return this.httpClient.put<any>(
-      this.settingsService.API_URL + endPointUrl,
+      this.getCleanUrl(endPointUrl),
       putData,
-      { headers: this.headers, 
-        responseType : 'json', 
+      { 
+        headers: this.getHeaders(), 
+        responseType: 'json', 
         reportProgress: false,
         withCredentials: true,
       }
-    )
+    );
   }
 
-  delete(endPointUrl:string){
+  delete(endPointUrl: string) {
     return this.httpClient.delete<any>(
-      this.settingsService.API_URL + endPointUrl,
-      { headers: this.headers, 
-        responseType : 'json', 
+      this.getCleanUrl(endPointUrl),
+      { 
+        headers: this.getHeaders(), 
+        responseType: 'json', 
         reportProgress: false,
         withCredentials: true,
       }
-    )
+    );
   }
 
   private generarHttpParamsDesdeObjeto(data: { [key: string]: any }): string {
-      /**
-       * Gets a string of HttpParams from an object.
-       * By default angular sends the data in request.body
-       * in this way it senfs the data in the body of the request request.BODY, as
-       * django expects.
-       * You need also to set the headers in the request
-       * 'Content-Type': 'application/x-www-form-urlencoded'
-       * @param data: an object with key-value pairs {'key': 'value', 'key2': 'value2', ...}
-       * @example {id: '', description: 'gg', area: '236', geom: 'polygon((0 0, 1 0, 1 1, 0 0))'}
-       * @returns {string}: id=&description=gg&area=236&geom=polygon((0%200,%201%200,%201%201,%200%200))
-       * @description
-       * This function takes an object and converts it into a string of HttpParams.
-       */
-      let params = new HttpParams();
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          let value = data[key];
-          
-          // PARACAÍDAS: Si el valor es null/undefined, lo pasamos a texto vacío para que no colapse
-          if (value === null || value === undefined) {
-            value = '';
-          }
-          
-          params = params.set(key, value.toString()); // Convertimos el valor a string de forma segura
+    let params = new HttpParams();
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        let value = data[key];
+        
+        if (value === null || value === undefined) {
+          value = '';
+        } else if (typeof value === 'object') {
+          value = JSON.stringify(value);
         }
+        
+        params = params.set(key, value.toString());
       }
-      return params.toString();
-    }}
+    }
+    return params.toString();
+  }
+}
+
+
+

@@ -1,207 +1,213 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
-import { ServerAnswerModel } from '../../../models/server-answer.model';
-import { Parque } from '../../../models/parque.model';
 import { CommonModule } from '@angular/common';
-
-//NUEVOS IMPORTS
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MapService } from '../../../services/map.service';
 import { WKT, GeoJSON } from 'ol/format';
 
+// --- NUEVOS IMPORTS PARA AUTOCOMPLETE ---
+import { CodelistService } from '../../../services/codelist.service';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+
 @Component({
   selector: 'app-parques-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterLink], // <-- Añade RouterLink aquí
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, MatAutocompleteModule, MatInputModule],
   templateUrl: './parques-form.component.html',
   styleUrl: './parques-form.component.scss'
 })
 export class ParquesFormComponent implements OnInit {
     
-  // Definimo formulario reactivo
   parquesForm!: FormGroup;
-  
-  // Variable para mostrar los mensajes del servidor en HTML
   serverMessage: string = '';
-
-  // Array vacio para mostrar info en select all
   listaParques: any[] = [];
 
-  // Inyectamos todos los servicios que necesitamos a la vez
+  mantenimientos: any[] = [];
+  mantenimientosFiltrados!: Observable<any[]>;
+
   constructor(
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     public mapService: MapService,
-    public router: Router
+    public router: Router,
+    private codelistService: CodelistService
   ) {}
 
   ngOnInit(): void {
-    // Inicializamos los controles del formulario
-    //nombres deben coincidir con los campos de la base de datos
     this.parquesForm = new FormGroup({
       id: new FormControl(''),
-      nombre: new FormControl(''),
-      area_hectareas: new FormControl(''),
+      nombre: new FormControl('', [Validators.required, Validators.minLength(3)]),
+      area_hectareas: new FormControl('', [Validators.min(0), Validators.pattern('^[0-9]+([.][0-9]+)?$')]), 
       tiene_zona_infantil: new FormControl(false),
       horario_cierre: new FormControl(''),
-      tipo_mantenimiento: new FormControl(''),
-      geom: new FormControl('')
+      tipo_mantenimiento: new FormControl(''), 
+      geom: new FormControl('', [Validators.required])
     });
-   // --- NUEVO: LEER LA URL ---
+
     this.activatedRoute.queryParamMap.subscribe(params => {
       const geom = params.get('geom');
-      if (geom) {
-        this.parquesForm.get('geom')?.setValue(geom);
-      }
+      if (geom) this.parquesForm.get('geom')?.setValue(geom);
+    });
+
+    // Cargar Catálogo
+    this.codelistService.getTiposMantenimiento().subscribe((data: any) => {
+      this.mantenimientos = data;
+      this.mantenimientosFiltrados = this.parquesForm.get('tipo_mantenimiento')!.valueChanges.pipe(
+        startWith(''),
+        map(value => this.filtrar(value, this.mantenimientos))
+      );
     });
   }
 
-  // BOTON 1: INSERT (POST)
+  // --- LÓGICAS AUTOCOMPLETE ---
+  private filtrar(value: any, lista: any[]): any[] {
+    const filterValue = (typeof value === 'string' ? value : value?.nombre || '').toLowerCase();
+    return lista.filter(item => item.nombre.toLowerCase().includes(filterValue));
+  }
+
+  displayNombre(item: any): string {
+    return item && item.nombre ? item.nombre : '';
+  }
+
+  private extraerIdCodelist(valor: any, lista: any[]): number | null {
+    if (!valor) return null;
+    if (typeof valor === 'object' && valor.id) return valor.id;
+    if (typeof valor === 'string') {
+      const encontrado = lista.find(item => item.nombre.toLowerCase() === valor.toLowerCase());
+      return encontrado ? encontrado.id : null;
+    }
+    return null;
+  }
+
+  // --- CRUD RESTO IGUAL ---
   insert(): void {
-    const parqueData = this.parquesForm.value;
-    delete parqueData.id; // Para insertar no enviamos el ID, lo genera la BDD
+    const parqueData = { ...this.parquesForm.value };
+    delete parqueData.id; 
     
-    // Llamamos al ApiService
-    console.log('Enviando (POST) parque:', parqueData);
+    parqueData.tipo_mantenimiento = this.extraerIdCodelist(parqueData.tipo_mantenimiento, this.mantenimientos);
+    
     this.apiService.post('/smartcity/parques/', parqueData).subscribe({
       next: (response: any) => {
-        // Mostramos mensaje y ID generado
         this.serverMessage = `Insert OK. Nuevo ID: ${response.id}`;
-        console.log('Respuesta (POST) OK:', response);
+        this.listaParques = [response];
         this.mapService.getLayerByTitle('Parques WMS')?.getSource().updateParams({"time": Date.now()});
       },
-  error: (err: any) => {
+      error: (err: any) => {
         this.serverMessage = `Error al insertar: ${err?.message || err}`;
-        console.error('Error (POST) al insertar parque:', err);
       }
     });
   }
 
-  // BOTON 2: SELECT ONE (GET con ID)
   selectOne(): void {
     const id = this.parquesForm.get('id')?.value;
-    if (!id) {
-      this.serverMessage = 'Error: Escribe un ID para buscar';
-      return;
-    }
+    if (!id) return;
 
-    console.log(`Consultando (GET) parque id=${id}`);
     this.apiService.get(`/smartcity/parques/${id}/`).subscribe({
       next: (response: any) => {
         this.parquesForm.patchValue(response);
+        if (response.geom_wkt) this.parquesForm.get('geom')?.setValue(response.geom_wkt);
+        
+        // Traducir ID a Objeto para el Autocomplete
+        if (response.tipo_mantenimiento) {
+          const obj = this.mantenimientos.find(m => m.id === response.tipo_mantenimiento);
+          if (obj) this.parquesForm.get('tipo_mantenimiento')?.setValue(obj);
+        }
+
+        this.listaParques = [response];
         this.serverMessage = `Registro ${id} cargado correctamente.`;
-        console.log('Respuesta (GET) OK:', response);
       },
-  error: (err: any) => {
+      error: (err: any) => {
         this.serverMessage = `Error: No se encontró el parque con ID ${id}`;
-        console.error(`Error (GET) al buscar id=${id}:`, err);
       }
     });
   }
 
-  // BOTON 3: UPDATE (PUT)
   update(): void {
     const id = this.parquesForm.get('id')?.value;
-    const parqueData = this.parquesForm.value;
-
-    // Borra el ID del paquete de datos antes de enviarlo
+    const parqueData = { ...this.parquesForm.value };
     delete parqueData.id;
+
+    parqueData.tipo_mantenimiento = this.extraerIdCodelist(parqueData.tipo_mantenimiento, this.mantenimientos);
 
     this.apiService.put(`/smartcity/parques/${id}/`, parqueData).subscribe({
       next: (response: any) => {
         this.serverMessage = `Update OK. Registro ID: ${response.id} actualizado.`;
+        response.geom_wkt = response.geom_wkt || parqueData.geom;
+        this.listaParques = [response];
+        this.mapService.getLayerByTitle('Parques WMS')?.getSource().updateParams({"time": Date.now()});
       },
-  error: (err: any) => {
-        // Ver error de Django si falla la geometría
+      error: (err: any) => {
         this.serverMessage = `Error al actualizar: ${JSON.stringify(err.error)}`;
-        console.error('Error (PUT) al actualizar parque:', err);
       }
     });
   }
 
-  // BOTON 4: DELETE
   delete(): void {
     const id = this.parquesForm.get('id')?.value;
-
     this.apiService.delete(`/smartcity/parques/${id}/`).subscribe({
       next: () => {
         this.serverMessage = `Delete OK. Registro ID: ${id} eliminado.`;
-        this.clean(); // vaciamos formulario al borrar
-      },
-  error: (err: any) => {
-        this.serverMessage = `Error al borrar: ${err?.message || err}`;
-        console.error(`Error (DELETE) id=${id}:`, err);
+        this.clean(); 
+        this.mapService.getLayerByTitle('Parques WMS')?.getSource().updateParams({"time": Date.now()});
       }
     });
   }
 
-  // BOTON 5: SELECT ALL (GET generico)
   selectAll(): void {
     this.apiService.get('/smartcity/parques/').subscribe({
       next: (response: any) => {
-        // DETECTOR INTELIGENTE: Extrae el array venga en 'results', en 'data', o directo
         this.listaParques = response.results || response.data || (Array.isArray(response) ? response : []);
-        
-        const cantidad = this.listaParques.length;
-        this.serverMessage = `Select All OK. Hay ${cantidad} parques registrados.`;
-        console.log('Respuesta (GET) selectAll OK:', response);
-
+        this.serverMessage = `Select All OK. Hay ${this.listaParques.length} parques registrados.`;
         this.dibujarEnMapa(this.listaParques);
-      },
-      error: (err: any) => {
-        this.serverMessage = `Error al pedir todos: ${err?.message || err}`;
-        console.error('Error (GET) selectAll:', err);
       }
     });
   }
 
-  // NUEVA FUNCIÓN A PRUEBA DE BALAS Y DE TYPESCRIPT
   dibujarEnMapa(lista: any[]): void {
     const vectorLayer = this.mapService.getLayerByTitle('Parques vector');
     const source = vectorLayer?.getSource();
-    if (!source) {
-      console.error('No se encontró la capa "Parques vector"');
-      return;
-    }
+    if (!source) return;
 
-    source.clear(); // Limpiamos lo que hubiera antes
+    source.clear(); 
     const wktFormat = new WKT();
 
     lista.forEach(item => {
-      // Usamos el nombre real que viene de Django
       if (item.geom_wkt) { 
         try {
-          let feature: any = wktFormat.readFeature(item.geom_wkt, {
-            dataProjection: 'EPSG:25830',
-            featureProjection: 'EPSG:25830'
-          });
-
+          let feature: any = wktFormat.readFeature(item.geom_wkt, { dataProjection: 'EPSG:25830', featureProjection: 'EPSG:25830' });
           if (feature) {
             feature.setId(item.id);                  
             feature.set('tableName', 'parques');    
             feature.set('attributes', item);        
             source.addFeature(feature);
           }
-        } catch (e) {
-          console.error(`Error dibujando parque ID ${item.id}`, e);
-        }
+        } catch (e) {}
       }
     });
-    console.log(`${source.getFeatures().length} parques dibujados REALMENTE en la capa vector`);
   }
 
-  // BOTON EXTRA DE LA TABLA: Para cargar registro con un clic
   cargarEnFormulario(parqueClicado: any): void {
     this.parquesForm.patchValue(parqueClicado);
-    this.serverMessage = `Registro ID ${parqueClicado.id} cargado listo para actualizar o borrar.`;
+    if (parqueClicado.geom_wkt) this.parquesForm.get('geom')?.setValue(parqueClicado.geom_wkt);
+    
+    if (parqueClicado.tipo_mantenimiento) {
+      const obj = this.mantenimientos.find(m => m.id === parqueClicado.tipo_mantenimiento);
+      if (obj) this.parquesForm.get('tipo_mantenimiento')?.setValue(obj);
+    }
+    this.serverMessage = `Registro ID ${parqueClicado.id} cargado listo para actualizar.`;
   }
     
-
-  // BOTON CLEAN
   clean(): void {
-    this.parquesForm.reset(); // Vacia todos los campos text boxes
-    this.parquesForm.patchValue({ tiene_zona_infantil: false }); // Resetea checkbox
-    this.serverMessage = 'Formulario vaciado.';
+    this.parquesForm.reset(); 
+    this.parquesForm.patchValue({ tiene_zona_infantil: false }); 
+    this.listaParques = []; 
+    this.serverMessage = 'Formulario y tabla vaciados.';
   }
 }
+
+
+
