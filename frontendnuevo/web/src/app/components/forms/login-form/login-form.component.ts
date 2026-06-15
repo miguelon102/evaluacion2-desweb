@@ -37,21 +37,19 @@ export class LoginFormComponent {
   login() {
     this.serverMessage = '';
 
-    // Llamamos a la ruta oficial de Knox del profesor
     this.apiService.post('core/knox_login/', this.controlsGroup.value).subscribe({
       next: (response: any) => {
-        
-        // El servidor devuelve la llave dentro de response.data[0].token
         if (response && response.data && response.data.length > 0 && response.data[0].token) {
           const token = response.data[0].token;
-          
-          // Guardamos la llave en el navegador para que el api.service la pueda usar
           localStorage.setItem('knox_token', token);
           
           this.authService.username = this.username.value!; 
           this.authService.isAuthenticated = true;
-          this.serverMessage = '¡Login Correcto!';
           
+          // LA LÍNEA CLAVE: Guardamos los grupos que nos envía el profesor
+          this.authService.userGroups = response.data[0].groups;
+          
+          this.serverMessage = '¡Login Correcto!';
           this.router.navigate(['/map']); 
         } else {
           this.serverMessage = 'Login realizado pero no se recibió token.';
@@ -59,7 +57,6 @@ export class LoginFormComponent {
       },
       error: (error: any) => {
         console.error('Error de login capturado:', error);
-        
         let msg = 'Error de conexión.';
         if (error.error && error.error.messages) {
           msg = JSON.stringify(error.error.messages);

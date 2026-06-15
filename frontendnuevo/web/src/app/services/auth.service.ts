@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from './api.service';
-import { ServerAnswerModel } from '../models/server-answer.model';
 
 @Injectable({
   providedIn: 'root'
@@ -8,21 +6,27 @@ import { ServerAnswerModel } from '../models/server-answer.model';
 export class AuthService {
   public username: string = '';
   public isAuthenticated: boolean = false;
-  public userGroups: string[] = [];
-  constructor(public apiService: ApiService) {
-    this.checkIsLoggedInInServer();
-  }
-  checkIsLoggedInInServer() {
-      this.apiService.post('core/isloggedin/', {}).subscribe({
-              next: (response: ServerAnswerModel) => {
-                if (response.ok){
-                  this.username = response.data[0]['username']; 
-                  this.isAuthenticated = true;
-                }
-              },
-              error: (error:any)=>{
-                console.log(error.description)
-              }
-            })//subscribe
+  public userGroups: any = null; // Aquí guardaremos los grupos que manda el profesor
+
+  constructor() {}
+
+  // Función que usaremos para ocultar o mostrar botones
+  isEditor(): boolean {
+    if (!this.userGroups) return false;
+    
+    // Si el profesor manda un diccionario (ej: {"editor": true})
+    if (this.userGroups['editor'] === true || this.userGroups['admin'] === true) {
+      return true;
+    }
+    
+    // Si el profesor manda un array (ej: ["editor"])
+    if (Array.isArray(this.userGroups)) {
+      return this.userGroups.includes('editor') || this.userGroups.includes('admin');
+    }
+    
+    return false;
   }
 }
+
+
+
