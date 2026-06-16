@@ -1,3 +1,34 @@
-.gray{
-    background-color: darkgray;
+.hero {
+  width: 100%;
+  height: 50vh;
+  background-image: url('/assets/images/skyline_valencia.jpg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
 }
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 30, 70, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-title { color: white; font-size: 3rem; font-weight: bold; margin: 0; text-shadow: 0 2px 5px rgba(0,0,0,0.7); }
+.hero-subtitle { color: white; font-size: 1.5rem; letter-spacing: 5px; margin-top: 10px; text-shadow: 0 2px 5px rgba(0,0,0,0.7); }
+
+.dashboard { padding: 40px 20px; max-width: 1000px; margin: 0 auto; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.card-link { text-decoration: none; }
+.dash-card {
+  cursor: pointer; border-radius: 12px !important; text-align: center; padding: 20px 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important; }
+}
+.card-icon { font-size: 3rem; width: 3rem; height: 3rem; margin-bottom: 10px; }
+.map-icon { color: #3f51b5; } .parques-icon { color: #388e3c; } .contenedores-icon { color: #f57c00; } .carriles-icon { color: #0288d1; }
+h3 { margin: 0; color: #333; font-weight: 500; }

@@ -1,171 +1,117 @@
-/* You can add global styles to this file, and also import other style files */
+/* ===== RESET Y BASE ===== */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f4f6f8; /* Fondo global gris muy claro, limpio */
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
+/* ===== FLEXBOX HELPERS (del profesor, limpiados) ===== */
 .flexbox-exterior-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
-.flexbox-interior-container-column{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    //background-color: #62ac1c;
-}
-.flexbox-interior-container-row{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 10px;
-    background-color: #d4c4b3;
+.flexbox-interior-container-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 10px;
+  /* SIN background-color — era lo que causaba la capa beige */
 }
 
-.flexbox-responsive-interior-container-column-center-center-1000px{
-    display: flex;
-    flex-direction: column;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    align-items: center;
-    align-content: center;
-    //background-color: rgb(215, 215, 241);
+.flexbox-interior-container-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  box-sizing: border-box;
+  padding: 0 10px 10px 10px;
+  /* SIN background-color — era lo que causaba la capa beige */
 }
 
-.flexbox-responsive-interior-container-column-center-left-1000px{
-    display: flex;
-    flex-direction: column;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    align-items: left;
-    align-content: center;
-    //background-color: rgb(215, 215, 241);
+/* ===== CONTENEDORES RESPONSIVOS ===== */
+.flexbox-responsive-interior-container-column-center-center-1000px {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 10px;
+  align-items: center;
+  align-content: center;
 }
 
-.flexbox-responsive-interior-container-row-center-center-1000px{
-    display: flex;
-    flex-direction: row;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    //background-color: rgb(209, 209, 219);
-    align-items: center;
-    justify-content: center;
+.flexbox-responsive-interior-container-column-center-left-1000px {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 10px;
+  align-items: flex-start;
+  align-content: center;
 }
 
-.flexbox-responsive-interior-container-row-center-left-1000px{
-    display: flex;
-    flex-direction: row;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    //background-color: rgb(209, 209, 219);
-    align-items: center;
-    justify-content: left;
+.flexbox-responsive-interior-container-row-center-center-1000px {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  padding: 0 10px;
+  align-items: center;
+  justify-content: center;
 }
 
-.flexbox-responsive-interior-container-500px{
-    display: flex;
-    flex-direction: column;  
-    box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    //background-color: red;
-    align-items: left;
+.flexbox-responsive-interior-container-row-center-left-1000px {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  padding: 0 10px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-
-
-/*** To use with normal components ***
-It's applied on screens more than 1000px */
-@media only screen and (min-width:1000px) {
-    .flexbox-responsive-interior-container-column-center-center-1000px {width:1000px;}
-    .flexbox-responsive-interior-container-column-center-left-1000px {width:1000px;}
-    .flexbox-responsive-interior-container-row-center-center-1000px {width:1000px;}
-    .flexbox-responsive-interior-container-row-center-left-1000px {width:1000px;}
-  }
-/*It's applied on screens less than 1000px */
-@media only screen and (max-width:1000px) {
-    .flexbox-responsive-interior-container-column-center-center-1000px {width:100%;}
-    .flexbox-responsive-interior-container-column-center-left-1000px {width:100%;}
-    .flexbox-responsive-interior-container-row-center-center-1000px {width:100%;}
-    .flexbox-responsive-interior-container-row-center-left-1000px {width:100%;}
-  }
-/*-------------*/
-
-/* *** To use with forms ***
-It's applied on screens more than 500px */
-@media only screen and (min-width:500px) {
-    .flexbox-responsive-interior-container-500px {width:500px;}
-  }
-
-/*It's applied on screens less than 1000px */
-@media only screen and (max-width:500px) {
-    .flexbox-responsive-interior-container-500px {width:100%;}
-  }
-/*-------------*/
-
-form{
-    width:100%;
+.flexbox-responsive-interior-container-500px {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 10px;
 }
 
-mat-form-field{
-    width: 100%;
-    color:white;
+/* ===== BREAKPOINTS ===== */
+@media only screen and (min-width: 1000px) {
+  .flexbox-responsive-interior-container-column-center-center-1000px { width: 1000px; }
+  .flexbox-responsive-interior-container-column-center-left-1000px   { width: 1000px; }
+  .flexbox-responsive-interior-container-row-center-center-1000px    { width: 1000px; }
+  .flexbox-responsive-interior-container-row-center-left-1000px      { width: 1000px; }
 }
 
-.flexbox-aling-left{
-    display: flex;
-    justify-content: left;
-    align-items:flex-start;
-    margin-left: 30px;    
+@media only screen and (max-width: 1000px) {
+  .flexbox-responsive-interior-container-column-center-center-1000px { width: 100%; }
+  .flexbox-responsive-interior-container-column-center-left-1000px   { width: 100%; }
+  .flexbox-responsive-interior-container-row-center-center-1000px    { width: 100%; }
+  .flexbox-responsive-interior-container-row-center-left-1000px      { width: 100%; }
 }
 
-.text-align-center{
-    margin-top: 10px;
-    text-align: center;
-}
+@media only screen and (min-width: 500px)  { .flexbox-responsive-interior-container-500px { width: 500px; } }
+@media only screen and (max-width: 500px)  { .flexbox-responsive-interior-container-500px { width: 100%; } }
 
-.flexbox-align-center{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+/* ===== FORMULARIOS ===== */
+form { width: 100%; }
+mat-form-field { width: 100%; }
 
-.text-align-left{
-    text-align: left;
-}
+/* ===== UTILIDADES ===== */
+.flexbox-aling-left  { display: flex; justify-content: flex-start; align-items: flex-start; margin-left: 30px; }
+.flexbox-align-center { display: flex; justify-content: center; align-items: center; }
+.text-align-center   { margin-top: 10px; text-align: center; }
+.text-align-left     { text-align: left; }
+.bold                { font-weight: bold; }
+.red                 { color: #d32f2f; }
+.blue                { color: #1976d2; }
+.padding-10px        { padding: 10px; }
+.margin-10px         { margin: 10px; }
 
-.bold{
-    font-weight: bold;
-}
-.red{
-    color: red;
-}
-.blue{
-    color: blue;
-}
 
-.padding-10px{
-    padding: 10px;
-}
 
-.margin-10px{
-    margin: 10px;
-}
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+

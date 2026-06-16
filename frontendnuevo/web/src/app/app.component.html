@@ -8,8 +8,7 @@
       <h3 style="margin: 0; font-weight: bold; color: #333;">Menú SmartCity</h3>
     </div>
     
-    <app-menu (linkClicked)="drawer.close()"></app-menu>
-  </mat-sidenav>
+    <app-menu [isMobile]="true" (linkClicked)="drawer.close()"></app-menu>  </mat-sidenav>
 
   <mat-sidenav-content>
 

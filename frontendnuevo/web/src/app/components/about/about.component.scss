@@ -1,4 +1,8 @@
-.imagen{
-    width:300px;
-    height: auto;
-}
+.about-wrapper { display: flex; justify-content: center; padding: 50px 20px; }
+.about-card { max-width: 450px; width: 100%; border-radius: 15px !important; box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; padding-bottom: 20px;}
+.photo-placeholder { display: flex; justify-content: center; padding: 30px 0 10px; mat-icon { font-size: 80px; width: 80px; height: 80px; color: #ccc; } }
+mat-card-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; }
+mat-card-title { font-size: 1.4rem; font-weight: bold; }
+.info-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 0 20px; }
+.info-row mat-icon { color: #3f51b5; }
+.info-row span, .info-row a { font-size: 1rem; color: #444; text-decoration: none; }

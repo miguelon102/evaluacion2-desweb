@@ -1,23 +1,26 @@
-<div class="flexbox-exterior-container">
-<div class="flexbox-interior-container-row width-100">
+<nav class="menu-nav" [class.menu-mobile]="isMobile" [class.menu-desktop]="!isMobile">
+  <div class="menu-links">
+    <button mat-button routerLink="home"              (click)="onLinkClick()">INICIO</button>
+    <button mat-button routerLink="map"               (click)="onLinkClick()">VISOR / EDITOR CARTOGRAFÍA</button>
+    <button mat-button routerLink="parques-form"      (click)="onLinkClick()">Parques</button>
+    <button mat-button routerLink="contenedores-form" (click)="onLinkClick()">Contenedores Reciclaje</button>
+    <button mat-button routerLink="carriles-form"     (click)="onLinkClick()">Carriles Bici</button>
+    <button mat-button routerLink="about"             (click)="onLinkClick()">About</button>
+  </div>
 
-<button mat-button routerLink='home' (click)="onLinkClick()">Home</button>
-<button mat-button routerLink='map' (click)="onLinkClick()">Map</button>
-<button mat-button routerLink='help' (click)="onLinkClick()">Help</button>
-<button mat-button routerLink='about' (click)="onLinkClick()">About</button>
-
-<button mat-button routerLink='parques-form' (click)="onLinkClick()">Parques</button>
-<button mat-button routerLink='contenedores-form' (click)="onLinkClick()">Contenedores</button>
-<button mat-button routerLink='carriles-form' (click)="onLinkClick()">Carriles Bici</button>
-
-@if(authService.isAuthenticated){
-    <span>{{authService.username}}</span>
-    <button mat-button matTooltip="Close session" routerLink='logout-form' (click)="onLinkClick()"><mat-icon style="transform:rotate(180deg);">logout</mat-icon></button>
-} @else {
-    <span>Not logged in</span>
-    <button mat-button matTooltip="Init session" routerLink='login-form' (click)="onLinkClick()"><mat-icon>login</mat-icon></button>
-}
-</div>
-</div>
+  <div class="menu-user">
+    @if (authService.isAuthenticated) {
+      <span class="username">{{ authService.username }}</span>
+      <button mat-icon-button matTooltip="Cerrar sesión" routerLink="logout-form" (click)="onLinkClick()">
+        <mat-icon style="transform:rotate(180deg);">logout</mat-icon>
+      </button>
+    } @else {
+      <span class="username muted">Not logged in</span>
+      <button mat-icon-button matTooltip="Iniciar sesión" routerLink="login-form" (click)="onLinkClick()">
+        <mat-icon>login</mat-icon>
+      </button>
+    }
+  </div>
+</nav>
 
 
