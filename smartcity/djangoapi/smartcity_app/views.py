@@ -9,7 +9,7 @@ from .serializers import ParquesSerializer, ContenedoresSerializer, CarrilesBici
 class ParquesViewSet(viewsets.ModelViewSet):
     queryset = Parques.objects.all()
     serializer_class = ParquesSerializer
-    # CANDADO PARA MODIFICACIONES
+    # CANDADO PARA MODIFICACIONES (rechaza post o put si es AnonymousUser)
     permission_classes = [DjangoModelPermissionsOrAnonReadOnly]  
 
 class ContenedoresViewSet(viewsets.ModelViewSet):

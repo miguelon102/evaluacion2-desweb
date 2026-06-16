@@ -61,6 +61,7 @@ export class SelectInteractionComponent implements AfterViewInit, OnDestroy {
     this.selectInteraction?.setActive(false);
   }
 
+  // funcion ejecutada al seleccionar feature en el mapa (se extrae featureID y nombre capa, y se usa servicio router de angular para redirigir al formulario correspondiente y abrir el select one)
   onSelect = (e: SelectEvent) => {
     const feature = e.selected[0];
     if (!feature) return;

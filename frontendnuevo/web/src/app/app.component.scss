@@ -1,20 +1,41 @@
-/* 1. Contenedor principal totalmente transparente */
 .sidenav-container {
   height: 100vh;
-  background: transparent !important; /* La clave para que no tape botones ni el mapa */
+  background: transparent !important;
 }
 
-/* 2. El contenido central también debe ser transparente */
 mat-sidenav-content {
   background: transparent !important;
   display: flex;
   flex-direction: column;
 }
 
-/* 3. Estética profesional para el panel lateral (móvil) */
 .sidenav {
-  width: 250px; /* Un poco más de aire para los botones */
-  background-color: #f8f9fa; /* Un gris hiper claro muy elegante */
-  border-right: 1px solid #e0e0e0; /* Fina línea separadora */
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Sombra sutil */
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
 }
+
+/* El estilo limpio para la cabecera del menú lateral (Sustituye al beige) */
+.sidenav-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  background-color: #3f51b5;
+  color: #ffffff;
+
+  mat-icon { font-size: 1.5rem; }
+  span     { font-size: 1.1rem; font-weight: 600; }
+}
+
+/* El estilo de la barra superior del móvil */
+.mobile-toolbar {
+  background-color: #3f51b5;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+  position: relative;
+}
+
+

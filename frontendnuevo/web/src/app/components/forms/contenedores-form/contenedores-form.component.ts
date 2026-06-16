@@ -87,7 +87,7 @@ export class ContenedoresFormComponent implements OnInit {
     return item && item.nombre ? item.nombre : '';
   }
 
-  // TRADUCTORES PARA LA TABLA
+  // TRADUCTORES PARA LA TABLA (y mostrar codelists correctamente)
   getBarrioNombre(id: any): string {
     if (!id) return '';
     if (typeof id === 'object' && id.nombre) return id.nombre;

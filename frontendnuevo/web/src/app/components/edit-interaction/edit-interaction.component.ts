@@ -56,7 +56,7 @@ export class EditInteractionComponent implements AfterViewInit, OnDestroy {
     this.mapService.map!.addInteraction(this.editSelect);
     this.mapService.map!.addInteraction(this.modify);
 
-    // 3. SNAP (PUNTO 9): Efecto imán para que los vértices se peguen entre capas
+    // 3. SNAP
     layers.forEach(layer => {
       const snap = new Snap({ source: layer.getSource() });
       this.mapService.map!.addInteraction(snap);
@@ -95,7 +95,7 @@ export class EditInteractionComponent implements AfterViewInit, OnDestroy {
 
     // Extraemos la nueva geometría modificada en formato WKT
     const format = new WKT();
-    const newWkt = format.writeFeature(feature, {
+    const newWkt = format.writeGeometry(feature.getGeometry()!, {
       dataProjection: 'EPSG:25830',
       featureProjection: 'EPSG:25830'
     });
