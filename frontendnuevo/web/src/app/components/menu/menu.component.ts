@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
-import {MatButtonModule} from '@angular/material/button';
+import { Component, Output, EventEmitter } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import {MatIconModule} from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
-
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -14,6 +13,16 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent {
-  constructor(public authService: AuthService) { } // Inject the service to use it in the template
+  // Transmisor de eventos: avisa al componente padre cuando se hace clic
+  @Output() linkClicked = new EventEmitter<void>();
 
+  constructor(public authService: AuthService) {}
+
+  onLinkClick(): void {
+    this.linkClicked.emit();
+  }
 }
+
+
+
+
