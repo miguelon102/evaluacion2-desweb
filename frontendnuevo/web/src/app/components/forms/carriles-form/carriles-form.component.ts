@@ -50,6 +50,13 @@ export class CarrilesFormComponent implements OnInit {
     this.activatedRoute.queryParamMap.subscribe(params => {
       const geom = params.get('geom');
       if (geom) this.carrilesForm.get('geom')?.setValue(geom);
+      
+      // NUEVO: si llega un id desde el mapa, lo rellenamos y cargamos el registro
+      const id = params.get('id');
+      if (id) {
+        this.carrilesForm.get('id')?.setValue(id);
+        this.selectOne();
+      }
     });
 
     this.codelistService.getTiposPavimento().subscribe((data: any) => {
@@ -110,8 +117,15 @@ export class CarrilesFormComponent implements OnInit {
     this.apiService.get(`/smartcity/carriles/${id}/`).subscribe({
       next: (response: any) => {
         this.carrilesForm.patchValue(response);
-        if (response.geom_wkt) this.carrilesForm.get('geom')?.setValue(response.geom_wkt);
-        
+
+        // PRIORIZAR LA URL SOBRE LA BD: Si venimos de editar, la URL tiene la geometría buena
+        const geomDesdeUrl = this.activatedRoute.snapshot.queryParamMap.get('geom');
+        if (geomDesdeUrl) {
+          this.carrilesForm.get('geom')?.setValue(geomDesdeUrl);
+        } else if (response.geom_wkt) {
+          this.carrilesForm.get('geom')?.setValue(response.geom_wkt);
+        }
+
         if (response.tipo_pavimento) {
           const pObj = this.pavimentos.find(p => p.id === response.tipo_pavimento);
           if (pObj) this.carrilesForm.get('tipo_pavimento')?.setValue(pObj);

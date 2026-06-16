@@ -1,7 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ElementRef} from '@angular/core';
 
-
-
 //My imports
 import { MapService } from '../../services/map.service';
 import { DrawBuildingComponent } from '../draw-building/draw-building.component';
@@ -11,11 +9,16 @@ import { DrawFlowerComponent } from '../draw-flower/draw-flower.component';
 import { DrawParqueComponent } from '../draw-parque/draw-parque.component';
 import { DrawContenedorComponent } from '../draw-contenedor/draw-contenedor.component';
 import { DrawCarrilComponent } from '../draw-carril/draw-carril.component';
+import { SelectInteractionComponent } from '../select-interaction/select-interaction.component';
+import { EditInteractionComponent } from '../edit-interaction/edit-interaction.component';
+
+// NUEVO COMPONENTE: Select Interaction (Paso 6.4)
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [DrawBuildingComponent, DrawFlowerComponent, DrawParqueComponent, DrawContenedorComponent, DrawCarrilComponent],
+  // AÑADIDO: SelectInteractionComponent al array (Paso 6.4)
+  imports: [DrawBuildingComponent, DrawFlowerComponent, DrawParqueComponent, DrawContenedorComponent, DrawCarrilComponent, SelectInteractionComponent, EditInteractionComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
@@ -32,7 +35,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {  //Refer
   //It is called before the template objects are created
   //but after the constructor
   ngOnInit(): void {
-
+    // NUEVO: Cargar todas las geometrías al entrar al mapa (Paso 6.2)
+    this.mapService.loadAllVectorData(); 
   }
 
   //After the template objects are created.
@@ -54,8 +58,11 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {  //Refer
       // en un elemento inexistente,
       // lo que puede causar errores o pérdidas de memoria.
       this.mapService.map.setTarget(undefined);
-
-      console.log('Mapa desvinculado del DOM antes de destruir el componente');
     }
+    console.log('mapComponent destroyed');
   }
 }
+
+
+
+

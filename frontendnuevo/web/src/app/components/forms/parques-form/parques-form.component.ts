@@ -50,6 +50,13 @@ export class ParquesFormComponent implements OnInit {
     this.activatedRoute.queryParamMap.subscribe(params => {
       const geom = params.get('geom');
       if (geom) this.parquesForm.get('geom')?.setValue(geom);
+      
+      // NUEVO: si llega un id desde el mapa, lo rellenamos y cargamos el registro
+      const id = params.get('id');
+      if (id) {
+        this.parquesForm.get('id')?.setValue(id);
+        this.selectOne();
+      }
     });
 
     this.codelistService.getTiposMantenimiento().subscribe((data: any) => {
@@ -120,7 +127,13 @@ export class ParquesFormComponent implements OnInit {
     this.apiService.get(`/smartcity/parques/${id}/`).subscribe({
       next: (response: any) => {
         this.parquesForm.patchValue(response);
-        if (response.geom_wkt) this.parquesForm.get('geom')?.setValue(response.geom_wkt);
+        // PRIORIZAR LA URL SOBRE LA BD: Si venimos de editar, la URL tiene la geometría buena
+        const geomDesdeUrl = this.activatedRoute.snapshot.queryParamMap.get('geom');
+        if (geomDesdeUrl) {
+          this.parquesForm.get('geom')?.setValue(geomDesdeUrl);
+        } else if (response.geom_wkt) {
+          this.parquesForm.get('geom')?.setValue(response.geom_wkt);
+        }
         
         if (response.tipo_mantenimiento) {
           const obj = this.mantenimientos.find(m => m.id === response.tipo_mantenimiento);

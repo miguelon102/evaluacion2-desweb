@@ -52,6 +52,13 @@ export class ContenedoresFormComponent implements OnInit {
     this.activatedRoute.queryParamMap.subscribe(params => {
       const geom = params.get('geom');
       if (geom) this.contenedoresForm.get('geom')?.setValue(geom);
+      
+      // NUEVO: si llega un id desde el mapa, lo rellenamos y cargamos el registro
+      const id = params.get('id');
+      if (id) {
+        this.contenedoresForm.get('id')?.setValue(id);
+        this.selectOne();
+      }
     });
 
     this.codelistService.getBarrios().subscribe((data: any) => {
@@ -132,7 +139,14 @@ export class ContenedoresFormComponent implements OnInit {
     this.apiService.get(`/smartcity/contenedores/${id}/`).subscribe({
       next: (response: any) => {
         this.contenedoresForm.patchValue(response);
-        if (response.geom_wkt) this.contenedoresForm.get('geom')?.setValue(response.geom_wkt);
+        
+        // PRIORIZAR LA URL SOBRE LA BD: Si venimos de editar, la URL tiene la geometría buena
+        const geomDesdeUrl = this.activatedRoute.snapshot.queryParamMap.get('geom');
+        if (geomDesdeUrl) {
+          this.contenedoresForm.get('geom')?.setValue(geomDesdeUrl);
+        } else if (response.geom_wkt) {
+          this.contenedoresForm.get('geom')?.setValue(response.geom_wkt);
+        }
         
         if (response.barrio) {
           const bObj = this.barrios.find(b => b.id === response.barrio);

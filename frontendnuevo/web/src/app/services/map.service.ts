@@ -22,6 +22,10 @@ import { Vector as VectorSource } from 'ol/source';
 import LayerSwitcher from 'ol-layerswitcher';
 import { SettingsService } from './settings.service';
 
+import { ApiService } from './api.service';
+import { WKT } from 'ol/format';
+import Select from 'ol/interaction/Select';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -31,12 +35,52 @@ export class MapService {
   baseLayersGroup:LayerGroup;
   myLayersGroup:LayerGroup;
 
-  constructor(public settingsService: SettingsService) { 
+  // NUEVO: referencia compartida a la interacción Select "de navegación" (punto 6)
+  public browseSelectInteraction?: Select;
+
+  // CAMBIO: Inyectamos ApiService en el constructor
+  constructor(public settingsService: SettingsService, public apiService: ApiService) { 
       this.baseLayersGroup= this.createBaseLayers();
       this.myLayersGroup= this.createMyLayers();
       this.map= this.createMap();//Create the map and store it in the mapService
       this.addLayerSwitcherControl();
       this.addMousePositionControl();
+  }
+
+  // NUEVO: Carga las 3 tablas y dibuja sus geometrías en las capas vector
+  loadAllVectorData(): void {
+    this.loadVectorData('parques', '/smartcity/parques/', 'Parques vector');
+    this.loadVectorData('contenedores', '/smartcity/contenedores/', 'Contenedores vector');
+    this.loadVectorData('carriles', '/smartcity/carriles/', 'Carriles vector');
+  }
+
+  // NUEVO: Método privado que hace la llamada GET al endpoint y dibuja en OpenLayers
+  private loadVectorData(tableName: string, endpoint: string, layerTitle: string): void {
+    this.apiService.get(endpoint).subscribe({
+      next: (response: any) => {
+        const lista = response.results || response.data || (Array.isArray(response) ? response : []);
+        const source: any = this.getLayerByTitle(layerTitle)?.getSource();
+        if (!source) return;
+        
+        source.clear();
+        const wktFormat = new WKT();
+        lista.forEach((item: any) => {
+          if (item.geom_wkt) {
+            try {
+              const feature = wktFormat.readFeature(item.geom_wkt, {
+                dataProjection: 'EPSG:25830',
+                featureProjection: 'EPSG:25830'
+              });
+              feature.setId(item.id);
+              feature.set('tableName', tableName);
+              feature.set('attributes', item);
+              source.addFeature(feature);
+            } catch (e) {}
+          }
+        });
+      },
+      error: (err: any) => console.error(`Error cargando ${tableName}:`, err)
+    });
   }
 
   createBaseLayers(): LayerGroup {
@@ -254,3 +298,8 @@ export class MapService {
     }
   }
 }
+
+
+
+
+
