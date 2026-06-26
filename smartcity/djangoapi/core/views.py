@@ -6,6 +6,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 import random, time
 
+# NUEVO: imports DRF y Knox para IsLoggedIn
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from knox.auth import TokenAuthentication
+
 """
 Código	Nombre	Uso típico
 200	OK	Petición exitosa (valor por defecto).
@@ -40,9 +45,7 @@ class LoginView(View):
         user = authenticate(username=username, password=password)
         if user:
             login(request,user)#introduce into the request cookies the session_id,
-                    # and in the auth_sessions the session data. This way, 
-                    # in followoing requests, know who is the user and if
-                    # he is already authenticated. 
+                    # and in the auth_sessions the session data. This way, in followoing requests, know who is the user and if he is already authenticated. 
                     # The coockies are sent in the response header on POST requests
             return JsonResponse({"ok":True,"message": "User {0} logged in".format(username), "data":[{"username": username}]}, status=200)
         else:
@@ -59,18 +62,28 @@ class LogoutView(LoginRequiredMixin, View):
                             #the the session_id, stored in a cookie
         return JsonResponse({"ok":True,"message": "The user {0} is now logged out".format(username), "data":[]}, status=200)
 
-class IsLoggedIn(View):
+# ANTES (no funciona con Knox tras F5):
+# class IsLoggedIn(View):
+#     def post(self, request, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             ...
+
+# DESPUÉS: hereda de APIView para que Knox procese el header 'Authorization: Token xxx'
+class IsLoggedIn(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            # Extraemos los nombres de los grupos a los que pertenece el usuario (para poder informar bien a angular)
             groups = list(request.user.groups.values_list('name', flat=True))
             return JsonResponse({
                 "ok": True,
                 "message": "You are authenticated",
-                "data": [{
-                    'username': request.user.username,
-                    'groups': groups
-                }]
+                "data": [{'username': request.user.username, 'groups': groups}]
             }, status=200)
         else:
-            return JsonResponse({"ok": False, "message": "You are not authenticated", "data": []}, status=400)
+            return JsonResponse({
+                "ok": False,
+                "message": "You are not authenticated",
+                "data": []
+            }, status=400)

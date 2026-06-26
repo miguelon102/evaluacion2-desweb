@@ -28,7 +28,7 @@ import { AsyncPipe } from '@angular/common';
 export class AppComponent {
   title = 'web';
 
-  // Sensor inteligente que detecta si estamos en tamaño móvil
+  // Sensor inteligente que detecta si estamos en tamaño móvil (usando BreakpointObserver de CDK): creamos observable para vigilar tamaño pantalla
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches),

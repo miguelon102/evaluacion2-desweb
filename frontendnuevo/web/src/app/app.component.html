@@ -14,7 +14,7 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <!-- si se detecta que es un movil -->
+    <!-- SI SE DETECTA QUE ES MOVIL -->
     @if (isHandset$ | async) {
       <mat-toolbar class="mobile-toolbar">
         <button mat-icon-button (click)="drawer.toggle()">

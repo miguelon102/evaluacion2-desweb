@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './menu.component.scss'
 })
 export class MenuComponent {
-  // Detector para poner los botones en columna si estamos en móvil
+  // Detector para poner los botones en columna si estamos en modo movil
   @Input() isMobile: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
 
